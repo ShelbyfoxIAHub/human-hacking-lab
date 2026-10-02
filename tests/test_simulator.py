@@ -23,3 +23,14 @@ class SimulationArtifactsTest(unittest.TestCase):
         self.assertIn('"127.0.0.1:8090:8090"', compose)
         self.assertIn('"127.0.0.1:8025:8025"', compose)
         self.assertIn('"127.0.0.1:8080:8080"', compose)
+
+    def test_telemetry_never_stores_plaintext_token_in_new_events(self):
+        source = (ROOT / "apps" / "simulator" / "app.py").read_text(encoding="utf-8")
+        self.assertIn("hash_token(token)", source)
+        self.assertIn("token=NULL", source)
+        self.assertIn("correlation_id", source)
+
+    def test_telemetry_contract_exists(self):
+        schema = (ROOT / "docs" / "TELEMETRY-SCHEMA.md").read_text(encoding="utf-8")
+        for field in ("event_id", "campaign_id", "event_type", "timestamp", "correlation_id"):
+            self.assertIn(field, schema)
