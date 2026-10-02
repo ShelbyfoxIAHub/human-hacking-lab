@@ -142,16 +142,16 @@ def record_event(campaign_id, user_id, event_type, token, correlation_id,
     return event
 
 
-def valid_token(campaign_id, user_id, token):
+def valid_token(campaign_id, user_id, token, correlation_id):
     token_hash = hash_token(token)
     with DB_LOCK:
         row = CONN.execute(
-            """SELECT 1 FROM events
+            """SELECT correlation_id FROM events
                WHERE campaign_id=? AND user_id=? AND token_hash=?
-               LIMIT 1""",
+               ORDER BY timestamp ASC LIMIT 1""",
             (campaign_id, user_id, token_hash),
         ).fetchone()
-    return row is not None
+    return row is not None and row[0] == correlation_id
 
 
 def campaign_summary(campaign_id):
@@ -320,7 +320,7 @@ class Handler(BaseHTTPRequestHandler):
 
                 if event_type not in {"opened", "clicked", "reported"}:
                     raise ValueError("unsupported_event_type")
-                if not valid_token(campaign_id, user_id, token):
+                if not valid_token(campaign_id, user_id, token, correlation_id):
                     return self._json(403, {"error": "invalid_training_token"})
 
                 event = record_event(
