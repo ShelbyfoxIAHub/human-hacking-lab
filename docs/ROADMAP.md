@@ -9,7 +9,7 @@
 - synthetic identities
 - initial exercises
 
-## Phase 02 — Simulation Engine — current
+## Phase 02 — Simulation Engine
 
 - synthetic campaigns
 - local SMTP delivery
@@ -20,13 +20,17 @@
 - automated artifact tests
 - no credential collection
 
-## Phase 03 — Telemetry
+## Phase 03 — Telemetry — current
 
-- structured event schema
-- centralized logs
-- detection pipeline
-- dashboards
+- versioned event schema
+- UTC timestamps
 - correlation IDs
+- structured JSON logs
+- SQLite WAL persistence
+- token hashing and migration
+- sanitized event API
+- telemetry exercise
+- CI validation
 
 ## Phase 04 — Blue Team
 
