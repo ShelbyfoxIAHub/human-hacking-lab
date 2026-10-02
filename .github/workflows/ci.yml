@@ -1,0 +1,18 @@
+name: lab-ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Python
+        run: python -m py_compile apps/web/app.py
+
+      - name: Check for obvious secret files
+        run: |
+          ! find . -type f \( -name "*.pem" -o -name "*.key" -o -name ".env" \) -not -path "./.git/*" | grep .
