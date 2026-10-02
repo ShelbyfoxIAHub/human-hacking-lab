@@ -4,8 +4,12 @@ services:
     container_name: hhl-web
     environment:
       LAB_NAME: Human Hacking Lab
+      SIMULATOR_URL: http://simulator:8090
     ports:
       - "127.0.0.1:8080:8080"
+    depends_on:
+      simulator:
+        condition: service_healthy
     networks:
       - lab
 
@@ -17,7 +21,37 @@ services:
     networks:
       - lab
 
+  simulator:
+    build:
+      context: ..
+      dockerfile: apps/simulator/Dockerfile
+    container_name: hhl-simulator
+    environment:
+      PORT: "8090"
+      DB_PATH: /data/hhl-simulation.db
+      SMTP_HOST: mail
+      SMTP_PORT: "1025"
+      PUBLIC_BASE_URL: http://127.0.0.1:8080
+      USERS_FILE: /app/users.csv
+    ports:
+      - "127.0.0.1:8090:8090"
+    volumes:
+      - simulator-data:/data
+    depends_on:
+      - mail
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - lab
+
 networks:
   lab:
     name: hhl-isolated
     driver: bridge
+
+volumes:
+  simulator-data:
+    name: hhl-simulator-data
