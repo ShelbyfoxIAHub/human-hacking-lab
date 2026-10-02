@@ -10,16 +10,14 @@ services:
     depends_on:
       simulator:
         condition: service_healthy
-    networks:
-      - lab
+    networks: [lab]
 
   mail:
     image: mailhog/mailhog:v1.0.1
     container_name: hhl-mail
     ports:
       - "127.0.0.1:8025:8025"
-    networks:
-      - lab
+    networks: [lab]
 
   simulator:
     build:
@@ -33,19 +31,18 @@ services:
       SMTP_PORT: "1025"
       PUBLIC_BASE_URL: http://127.0.0.1:8080
       USERS_FILE: /app/users.csv
+      LOG_LEVEL: INFO
     ports:
       - "127.0.0.1:8090:8090"
     volumes:
       - simulator-data:/data
-    depends_on:
-      - mail
+    depends_on: [mail]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health')"]
       interval: 5s
       timeout: 3s
       retries: 10
-    networks:
-      - lab
+    networks: [lab]
 
 networks:
   lab:
