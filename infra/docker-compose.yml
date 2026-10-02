@@ -1,0 +1,23 @@
+services:
+  web:
+    build: ../apps/web
+    container_name: hhl-web
+    environment:
+      LAB_NAME: Human Hacking Lab
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - lab
+
+  mail:
+    image: mailhog/mailhog:v1.0.1
+    container_name: hhl-mail
+    ports:
+      - "127.0.0.1:8025:8025"
+    networks:
+      - lab
+
+networks:
+  lab:
+    name: hhl-isolated
+    driver: bridge
