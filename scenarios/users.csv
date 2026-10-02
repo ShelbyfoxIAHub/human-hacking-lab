@@ -1,0 +1,6 @@
+id,name,role,department,email,training_profile
+U001,Ana Torres,Analista,Finanzas,ana.torres@lab.invalid,novice
+U002,Carlos Ruiz,Administrador,IT,carlos.ruiz@lab.invalid,intermediate
+U003,Lucia Gomez,RRHH,People,lucia.gomez@lab.invalid,novice
+U004,Diego Marin,Soporte,IT,diego.marin@lab.invalid,advanced
+U005,Sofia Perez,Directora,Direccion,sofia.perez@lab.invalid,intermediate
