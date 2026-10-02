@@ -29,7 +29,7 @@
 - telemetry exercise
 - CI validation
 
-## Phase 04 — Blue Team / Detection Engineering — current
+## Phase 04 — Blue Team / Detection Engineering
 - deterministic detection service
 - explainable detection rules
 - alert evidence
@@ -37,11 +37,14 @@
 - isolated read-only telemetry access
 - reproducible rule evaluation
 
-## Phase 05 — CTF
-- progressive challenges
-- synthetic flags
-- scoring
-- defensive countermeasures
+## Phase 05 — CTF — current
+- progressive forensic challenges
+- synthetic flags derived from evidence
+- deterministic flag validation
+- one-time player scoring
+- local leaderboard
+- separate score persistence
+- read-only telemetry boundary
 
 ## Phase 06 — Assessment
 - evidence collection
