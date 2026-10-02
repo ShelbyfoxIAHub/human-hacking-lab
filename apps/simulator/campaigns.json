@@ -1,0 +1,9 @@
+[
+  {
+    "id": "HHL02-A",
+    "name": "Security Awareness — Synthetic Notice",
+    "sender": "training@hhl.lab.invalid",
+    "subject": "[TRAINING] Review your synthetic security notice",
+    "body": "Hello {name},\n\nThis is an isolated Human Hacking Lab exercise for the {department} team.\n\nReview the training scenario here:\n{click_url}\n\nNo credentials are requested or accepted by this exercise.\n\nHuman Hacking Lab"
+  }
+]
