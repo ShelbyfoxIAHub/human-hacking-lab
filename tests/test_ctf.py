@@ -1,6 +1,5 @@
 import unittest
 from pathlib import Path
-import tempfile
 
 ROOT = Path(__file__).parents[1]
 
@@ -34,3 +33,30 @@ class CTFArtifactsTest(unittest.TestCase):
         source = (ROOT / "apps" / "ctf" / "ctf.py").read_text(encoding="utf-8")
         self.assertIn("PLAYER_RE", source)
         self.assertIn("invalid_player_id", source)
+
+    def test_flag_format_is_deterministic(self):
+        import sys
+        sys.path.insert(0, str(ROOT / "apps" / "ctf"))
+        import ctf
+        self.assertEqual(ctf.flag_for("HHL-CTF-01", "run-123"), ctf.flag_for("HHL-CTF-01", "run-123"))
+        self.assertNotEqual(ctf.flag_for("HHL-CTF-01", "run-123"), ctf.flag_for("run-456", "run-123"))
+
+    def test_challenge_material_requires_expected_evidence(self):
+        import sys
+        sys.path.insert(0, str(ROOT / "apps" / "ctf"))
+        import ctf
+        import sqlite3
+
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        conn.execute(
+            "CREATE TABLE events (id TEXT, campaign_id TEXT, user_id TEXT, event_type TEXT, timestamp TEXT, correlation_id TEXT)"
+        )
+        conn.execute(
+            "INSERT INTO events VALUES ('e1','HHL02-A','u1','delivered','2026-10-02T00:00:00Z','run-1')"
+        )
+        conn.commit()
+
+        self.assertEqual(ctf.challenge_material("HHL-CTF-01", conn), "run-1")
+        self.assertIsNone(ctf.challenge_material("HHL-CTF-02", conn))
+        conn.close()
