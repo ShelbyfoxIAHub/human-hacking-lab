@@ -92,6 +92,32 @@ services:
       retries: 10
     networks: [lab]
 
+  assessment:
+    build:
+      context: ..
+      dockerfile: apps/assessment/Dockerfile
+    container_name: hhl-assessment
+    environment:
+      TELEMETRY_DB_PATH: /telemetry/hhl-simulation.db
+      ASSESSMENT_DB_PATH: /data/hhl-assessment.db
+      PORT: "8093"
+    ports:
+      - "127.0.0.1:8093:8093"
+    volumes:
+      - simulator-data:/telemetry:ro
+      - assessment-data:/data
+    depends_on:
+      detection:
+        condition: service_healthy
+      ctf:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8093/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [lab]
+
 networks:
   lab:
     name: hhl-isolated
@@ -102,3 +128,5 @@ volumes:
     name: hhl-simulator-data
   ctf-data:
     name: hhl-ctf-data
+  assessment-data:
+    name: hhl-assessment-data
