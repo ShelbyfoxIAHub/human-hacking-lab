@@ -19,9 +19,9 @@ The project combines:
 - MITRE ATT&CK mapping
 - CTF-style defensive challenges
 
-## Phase 01 — Foundation
+## Current release
 
-The first release provides:
+### Phase 01 — Foundation
 
 - Docker-based isolated lab network
 - Educational web application
@@ -29,7 +29,19 @@ The first release provides:
 - Synthetic user dataset
 - Rules of Engagement
 - Initial practical exercises
-- Reproducible local deployment
+
+### Phase 02 — Simulation Engine
+
+Phase 02 adds a deterministic, local-only campaign simulator:
+
+- Synthetic campaign definitions
+- Local SMTP delivery into MailHog
+- Event model: `delivered`, `opened`, `clicked`, `reported`
+- SQLite event persistence with a volume
+- Controlled training landing page
+- Campaign metrics API
+- Automated artifact tests
+- No credential collection
 
 ### Quick start
 
@@ -43,11 +55,30 @@ Open:
 
 - Lab portal: http://127.0.0.1:8080
 - MailHog: http://127.0.0.1:8025
+- Simulation API: http://127.0.0.1:8090/health
+
+Run the Phase 02 campaign:
+
+```bash
+curl -X POST http://127.0.0.1:8090/campaigns/HHL02-A/send
+```
+
+View metrics:
+
+```bash
+curl http://127.0.0.1:8090/campaigns/HHL02-A/summary
+```
 
 Stop the lab:
 
 ```bash
 docker compose -f infra/docker-compose.yml down
+```
+
+Remove persisted simulation data:
+
+```bash
+docker compose -f infra/docker-compose.yml down -v
 ```
 
 ## Repository structure
@@ -59,6 +90,7 @@ human-hacking-lab/
 ├── infra/               # Docker/infrastructure
 ├── scenarios/           # Synthetic identities and scenarios
 ├── exercises/           # Student exercises
+├── tests/               # Automated validation
 ├── docs/                # Lab documentation and ROE
 └── evidence/            # Local evidence directory
 ```
