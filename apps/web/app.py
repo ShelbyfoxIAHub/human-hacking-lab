@@ -14,6 +14,7 @@ def record_click(query):
         "user_id": query.get("user", [""])[0],
         "token": query.get("token", [""])[0],
         "event_type": "clicked",
+        "correlation_id": query.get("run", [""])[0],
     }
     if not all(payload.values()):
         return False
