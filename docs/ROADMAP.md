@@ -9,19 +9,24 @@
 - synthetic identities
 - initial exercises
 
-## Phase 02 — Simulation Engine
+## Phase 02 — Simulation Engine — current
 
 - synthetic campaigns
-- educational landing pages
-- controlled interaction events
+- local SMTP delivery
+- controlled landing page
+- event ingestion
 - campaign metrics
+- SQLite persistence
+- automated artifact tests
+- no credential collection
 
 ## Phase 03 — Telemetry
 
-- structured events
+- structured event schema
 - centralized logs
 - detection pipeline
 - dashboards
+- correlation IDs
 
 ## Phase 04 — Blue Team
 
