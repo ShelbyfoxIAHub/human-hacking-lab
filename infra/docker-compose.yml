@@ -66,6 +66,32 @@ services:
       retries: 10
     networks: [lab]
 
+  ctf:
+    build:
+      context: ..
+      dockerfile: apps/ctf/Dockerfile
+    container_name: hhl-ctf
+    environment:
+      TELEMETRY_DB_PATH: /telemetry/hhl-simulation.db
+      CTF_DB_PATH: /data/hhl-ctf.db
+      PORT: "8092"
+    ports:
+      - "127.0.0.1:8092:8092"
+    volumes:
+      - simulator-data:/telemetry:ro
+      - ctf-data:/data
+    depends_on:
+      simulator:
+        condition: service_healthy
+      detection:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8092/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [lab]
+
 networks:
   lab:
     name: hhl-isolated
@@ -74,3 +100,5 @@ networks:
 volumes:
   simulator-data:
     name: hhl-simulator-data
+  ctf-data:
+    name: hhl-ctf-data
