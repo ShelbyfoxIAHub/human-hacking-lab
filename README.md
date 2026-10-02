@@ -43,6 +43,27 @@ Phase 02 adds a deterministic, local-only campaign simulator:
 - Automated artifact tests
 - No credential collection
 
+### Phase 03 — Telemetry
+
+Phase 03 adds a stable telemetry contract for later SIEM integration:
+
+- UTC event timestamps
+- correlation IDs per campaign run
+- structured JSON logs
+- SQLite WAL mode for concurrent lab activity
+- migration of Phase 02 plaintext tokens to SHA-256 hashes
+- sanitized event API
+- token/run binding for training interactions
+- telemetry exercise
+
+Inspect events with:
+
+```bash
+curl http://127.0.0.1:8090/campaigns/HHL02-A/events
+```
+
+Telemetry design is documented in [docs/TELEMETRY-SCHEMA.md](docs/TELEMETRY-SCHEMA.md).
+
 ### Quick start
 
 ```bash
