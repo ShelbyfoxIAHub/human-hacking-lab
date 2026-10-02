@@ -39,7 +39,7 @@ class CTFArtifactsTest(unittest.TestCase):
         sys.path.insert(0, str(ROOT / "apps" / "ctf"))
         import ctf
         self.assertEqual(ctf.flag_for("HHL-CTF-01", "run-123"), ctf.flag_for("HHL-CTF-01", "run-123"))
-        self.assertNotEqual(ctf.flag_for("HHL-CTF-01", "run-123"), ctf.flag_for("run-456", "run-123"))
+        self.assertNotEqual(ctf.flag_for("HHL-CTF-01", "run-123"), ctf.flag_for("HHL-CTF-01", "run-456"))
 
     def test_challenge_material_requires_expected_evidence(self):
         import sys
