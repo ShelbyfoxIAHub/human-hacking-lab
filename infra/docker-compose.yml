@@ -44,6 +44,28 @@ services:
       retries: 10
     networks: [lab]
 
+  detection:
+    build:
+      context: ..
+      dockerfile: apps/detection/Dockerfile
+    container_name: hhl-detection
+    environment:
+      DB_PATH: /data/hhl-simulation.db
+      PORT: "8091"
+    ports:
+      - "127.0.0.1:8091:8091"
+    volumes:
+      - simulator-data:/data:ro
+    depends_on:
+      simulator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8091/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [lab]
+
 networks:
   lab:
     name: hhl-isolated
