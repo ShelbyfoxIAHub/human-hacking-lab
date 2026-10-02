@@ -2,31 +2,24 @@
 
 Open-source laboratory for ethical social engineering, Human Risk Management, Red Team, Blue Team, OSINT, phishing awareness, detection, CTF and cybersecurity training.
 
-> **Safety first:** every exercise is designed for synthetic identities, synthetic data and isolated lab infrastructure. Do not use real credentials, personal data, third-party targets or external messaging infrastructure.
+> Safety first: every exercise uses synthetic identities, synthetic data and isolated lab infrastructure. Do not use real credentials, personal data, third-party targets or external messaging infrastructure.
 
-## Phase 05 — CTF Engine
+## Current training pipeline
 
-Phase 05 adds a deterministic Capture-the-Flag layer over the Phase 03 telemetry and Phase 04 detection evidence:
+Phase 06 extends the evidence chain into a bounded assessment workflow:
 
-- progressive forensic challenges
-- synthetic flags derived from lab evidence
-- one-time per-player scoring
-- local leaderboard
-- read-only access to telemetry
-- separate persistent score database
-- no credential collection
+Synthetic Campaign -> Telemetry -> Detection -> CTF Evidence -> Findings -> Remediation -> Retest -> Residual Risk
 
-CTF API:
+Assessment API:
 
 ```bash
-curl http://127.0.0.1:8092/health
-curl http://127.0.0.1:8092/challenges
-curl http://127.0.0.1:8092/challenges/HHL-CTF-01/hint
-curl 'http://127.0.0.1:8092/score?player=student-01'
-curl http://127.0.0.1:8092/leaderboard
+curl http://127.0.0.1:8093/health
+curl http://127.0.0.1:8093/templates
+curl 'http://127.0.0.1:8093/assessments?id=ASM-STUDENT-01'
+curl 'http://127.0.0.1:8093/risk?id=ASM-STUDENT-01'
 ```
 
-See [docs/CTF-RULES.md](docs/CTF-RULES.md) and [exercises/phase-05/HHL-05.md](exercises/phase-05/HHL-05.md).
+See docs/ASSESSMENT.md and exercises/phase-06/HHL-06.md.
 
 ## Quick start
 
@@ -34,27 +27,15 @@ See [docs/CTF-RULES.md](docs/CTF-RULES.md) and [exercises/phase-05/HHL-05.md](ex
 docker compose -f infra/docker-compose.yml up -d --build
 ```
 
-The complete lab remains local-only through loopback-bound ports.
+All exposed lab services remain loopback-bound.
 
-## Training flow
+## Phase status
 
-```text
-Synthetic Campaign
-      |
-      v
-Telemetry
-      |
-      v
-Detection
-      |
-      v
-CTF Evidence
-      |
-      v
-Flag Validation
-      |
-      v
-Score / Leaderboard
-```
+Phase 01 Foundation ✓
+Phase 02 Simulation Engine ✓
+Phase 03 Telemetry ✓
+Phase 04 Detection Engineering ✓
+Phase 05 CTF ✓
+Phase 06 Assessment ✓
 
-Phase 06 will extend this evidence chain into formal assessment, remediation, retest and residual-risk reporting.
+Phase 06 does not declare the lab or any external system secure. Its outputs are bounded by synthetic evidence, configured rules and executed tests.
