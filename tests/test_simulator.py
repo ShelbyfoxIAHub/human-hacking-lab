@@ -34,3 +34,7 @@ class SimulationArtifactsTest(unittest.TestCase):
         schema = (ROOT / "docs" / "TELEMETRY-SCHEMA.md").read_text(encoding="utf-8")
         for field in ("event_id", "campaign_id", "event_type", "timestamp", "correlation_id"):
             self.assertIn(field, schema)
+
+    def test_training_request_preserves_run_correlation(self):
+        source = (ROOT / "apps" / "web" / "app.py").read_text(encoding="utf-8")
+        self.assertIn('"correlation_id": query.get("run", [""])[0]', source)
