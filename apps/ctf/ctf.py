@@ -140,6 +140,7 @@ def challenge_flag(challenge_id: str, conn):
 
 def init_score_db():
     conn = sqlite3.connect(CTF_DB, check_same_thread=False)
+    conn.execute("PRAGMA journal_mode=WAL")
     conn.execute(
         """CREATE TABLE IF NOT EXISTS submissions (
             player_id TEXT NOT NULL,
@@ -153,13 +154,14 @@ def init_score_db():
 
 
 def score_for(player_id: str, conn):
-    row = conn.execute(
-        """SELECT COALESCE(SUM(c.points), 0)
-           FROM submissions s
-           JOIN ctf_challenges c ON c.challenge_id=s.challenge_id
-           WHERE s.player_id=?""",
-        (player_id,),
-    ).fetchone()
+    with DB_LOCK:
+        row = conn.execute(
+            """SELECT COALESCE(SUM(c.points), 0)
+               FROM submissions s
+               JOIN ctf_challenges c ON c.challenge_id=s.challenge_id
+               WHERE s.player_id=?""",
+            (player_id,),
+        ).fetchone()
     return int(row[0] or 0)
 
 
@@ -178,10 +180,11 @@ def init_challenge_table(conn):
 
 
 def completed(player_id: str, challenge_id: str, conn):
-    row = conn.execute(
-        "SELECT 1 FROM submissions WHERE player_id=? AND challenge_id=?",
-        (player_id, challenge_id),
-    ).fetchone()
+    with DB_LOCK:
+        row = conn.execute(
+            "SELECT 1 FROM submissions WHERE player_id=? AND challenge_id=?",
+            (player_id, challenge_id),
+        ).fetchone()
     return row is not None
 
 
@@ -262,11 +265,12 @@ class Handler(BaseHTTPRequestHandler):
                 player_id = normalize_player_id(query.get("player", [""])[0])
             except ValueError as exc:
                 return self._json(400, {"error": str(exc)})
-            rows = self.score_conn.execute(
-                """SELECT challenge_id, accepted_at
-                   FROM submissions WHERE player_id=? ORDER BY accepted_at ASC""",
-                (player_id,),
-            ).fetchall()
+            with DB_LOCK:
+                rows = self.score_conn.execute(
+                    """SELECT challenge_id, accepted_at
+                       FROM submissions WHERE player_id=? ORDER BY accepted_at ASC""",
+                    (player_id,),
+                ).fetchall()
             return self._json(200, {
                 "player_id": player_id,
                 "score": score_for(player_id, self.score_conn),
@@ -276,15 +280,16 @@ class Handler(BaseHTTPRequestHandler):
             })
 
         if parsed.path == "/leaderboard":
-            rows = self.score_conn.execute(
-                """SELECT player_id, COALESCE(SUM(c.points),0) AS score,
-                          COUNT(*) AS completed
-                   FROM submissions s
-                   JOIN ctf_challenges c ON c.challenge_id=s.challenge_id
-                   GROUP BY player_id
-                   ORDER BY score DESC, player_id ASC
-                   LIMIT 50"""
-            ).fetchall()
+            with DB_LOCK:
+                rows = self.score_conn.execute(
+                    """SELECT player_id, COALESCE(SUM(c.points),0) AS score,
+                              COUNT(*) AS completed
+                       FROM submissions s
+                       JOIN ctf_challenges c ON c.challenge_id=s.challenge_id
+                       GROUP BY player_id
+                       ORDER BY score DESC, player_id ASC
+                       LIMIT 50"""
+                ).fetchall()
             return self._json(200, [
                 {"player_id": row[0], "score": int(row[1]), "completed": row[2]}
                 for row in rows
