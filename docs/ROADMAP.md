@@ -37,7 +37,7 @@
 - isolated read-only telemetry access
 - reproducible rule evaluation
 
-## Phase 05 — CTF — current
+## Phase 05 — CTF
 - progressive forensic challenges
 - synthetic flags derived from evidence
 - deterministic flag validation
@@ -46,9 +46,21 @@
 - separate score persistence
 - read-only telemetry boundary
 
-## Phase 06 — Assessment
-- evidence collection
-- findings
-- remediation
-- retest
-- residual risk
+## Phase 06 — Assessment — current
+- evidence-derived findings
+- contextual severity
+- bounded risk calculation
+- remediation records
+- retest records
+- residual-risk calculation
+- separate assessment persistence
+- read-only telemetry boundary
+
+## Phase 07 — Reporting / Governance
+- assessment report generation
+- evidence index
+- executive summary
+- remediation tracking
+- audit trail
+- exportable artifacts
+- residual-risk register
