@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate Python
-        run: python -m py_compile apps/web/app.py apps/simulator/app.py apps/detection/detector.py apps/ctf/ctf.py apps/assessment/assessment.py
+        run: python -m py_compile apps/web/app.py apps/simulator/app.py apps/detection/detector.py apps/ctf/ctf.py apps/assessment/assessment.py apps/reporting/reporting.py
 
       - name: Run artifact tests
         run: python -m unittest discover -s tests -p 'test_*.py'
