@@ -118,6 +118,32 @@ services:
       retries: 10
     networks: [lab]
 
+  reporting:
+    build:
+      context: ..
+      dockerfile: apps/reporting/Dockerfile
+    container_name: hhl-reporting
+    environment:
+      ASSESSMENT_DB_PATH: /assessment/hhl-assessment.db
+      REPORT_DB_PATH: /data/hhl-reporting.db
+      REPORT_DIR: /reports
+      PORT: "8094"
+    ports:
+      - "127.0.0.1:8094:8094"
+    volumes:
+      - assessment-data:/assessment:ro
+      - reporting-data:/data
+      - reporting-reports:/reports
+    depends_on:
+      assessment:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8094/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [lab]
+
 networks:
   lab:
     name: hhl-isolated
@@ -130,3 +156,7 @@ volumes:
     name: hhl-ctf-data
   assessment-data:
     name: hhl-assessment-data
+  reporting-data:
+    name: hhl-reporting-data
+  reporting-reports:
+    name: hhl-reporting-reports
