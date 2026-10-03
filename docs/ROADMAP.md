@@ -46,7 +46,7 @@
 - separate score persistence
 - read-only telemetry boundary
 
-## Phase 06 — Assessment — current
+## Phase 06 — Assessment
 - evidence-derived findings
 - contextual severity
 - bounded risk calculation
@@ -56,11 +56,15 @@
 - separate assessment persistence
 - read-only telemetry boundary
 
-## Phase 07 — Reporting / Governance
+## Phase 07 — Reporting / Governance — current
 - assessment report generation
 - evidence index
 - executive summary
 - remediation tracking
-- audit trail
-- exportable artifacts
+- append-only audit trail
+- JSON/Markdown export artifacts
 - residual-risk register
+- read-only assessment boundary
+
+## Next
+Phase 08 can extend governance into control verification, audit-ready evidence packages and regression gates without leaving the synthetic isolated lab boundary.
