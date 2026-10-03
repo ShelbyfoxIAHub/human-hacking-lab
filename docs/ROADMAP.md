@@ -56,7 +56,7 @@
 - separate assessment persistence
 - read-only telemetry boundary
 
-## Phase 07 — Reporting / Governance — current
+## Phase 07 — Reporting / Governance
 - assessment report generation
 - evidence index
 - executive summary
@@ -66,5 +66,11 @@
 - residual-risk register
 - read-only assessment boundary
 
-## Next
-Phase 08 can extend governance into control verification, audit-ready evidence packages and regression gates without leaving the synthetic isolated lab boundary.
+## Phase 08 — Control Verification / Regression Gate — current
+- control verification service
+- assessment/reporting read-only boundaries
+- structured control evidence
+- canonical verification content hash
+- reproducible PASS/FAIL regression gate
+- persisted verification runs
+- synthetic audit-ready evidence
