@@ -144,6 +144,32 @@ services:
       retries: 10
     networks: [lab]
 
+  verification:
+    build:
+      context: ..
+      dockerfile: apps/verification/Dockerfile
+    container_name: hhl-verification
+    environment:
+      ASSESSMENT_DB_PATH: /assessment/hhl-assessment.db
+      REPORT_DB_PATH: /reporting/hhl-reporting.db
+      VERIFY_DB_PATH: /data/hhl-verification.db
+      PORT: "8095"
+    ports:
+      - "127.0.0.1:8095:8095"
+    volumes:
+      - assessment-data:/assessment:ro
+      - reporting-data:/reporting:ro
+      - verification-data:/data
+    depends_on:
+      reporting:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8095/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [lab]
+
 networks:
   lab:
     name: hhl-isolated
@@ -160,3 +186,5 @@ volumes:
     name: hhl-reporting-data
   reporting-reports:
     name: hhl-reporting-reports
+  verification-data:
+    name: hhl-verification-data
