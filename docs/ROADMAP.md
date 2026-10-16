@@ -74,3 +74,14 @@
 - reproducible PASS/FAIL regression gate
 - persisted verification runs
 - synthetic audit-ready evidence
+
+## Phase 09 — Guided Instructor / Learner Dashboard — in progress
+- local browser dashboard for the complete synthetic training flow
+- campaign launch through the simulator and local MailHog
+- telemetry and detection review
+- learner CTF progress, hints and flag submission
+- assessment findings and evidence-backed remediation/retest actions
+- report generation followed by control verification
+- explicit service errors and same-origin, allowlisted API proxy
+- browser flow remains local-only; no real credentials or external delivery
+- Compose-stack smoke validation in CI for campaign delivery, CTF, assessment, report and verification

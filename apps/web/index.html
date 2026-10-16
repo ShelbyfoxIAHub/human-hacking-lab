@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a27">
+  <title>{{LAB_NAME}} | Panel del laboratorio</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #101a27;
+      color: #e8eef5;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --muted: #a5b4c5;
+      --panel: #192737;
+      --line: #314356;
+      --accent: #75d7b2;
+      --danger: #ff9b9b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    a { color: var(--accent); }
+    button, input { font: inherit; }
+    button {
+      border: 1px solid #4d6b7d;
+      border-radius: 8px;
+      padding: .65rem .85rem;
+      color: #10211c;
+      background: var(--accent);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.secondary { color: #e8eef5; background: #263a4c; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    input, select {
+      border: 1px solid #53677c;
+      border-radius: 7px;
+      padding: .6rem .7rem;
+      color: #e8eef5;
+      background: #101a27;
+    }
+    input:focus, select:focus, button:focus-visible, a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    header, main { width: min(1180px, calc(100% - 2rem)); margin: auto; }
+    header { padding: 2rem 0 1.25rem; }
+    header p, .muted { color: var(--muted); }
+    h1 { margin: 0; font-size: clamp(1.65rem, 4vw, 2.5rem); }
+    h2 { margin-top: 0; font-size: 1.2rem; }
+    h3 { margin-bottom: .35rem; font-size: 1rem; }
+    .eyebrow { color: var(--accent); font-size: .8rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .status { display: inline-flex; align-items: center; gap: .5rem; }
+    .status::before { content: ""; width: .6rem; height: .6rem; border-radius: 50%; background: var(--accent); }
+    .safety {
+      border: 1px solid #48634f;
+      border-radius: 10px;
+      padding: .85rem 1rem;
+      background: #1a302d;
+      color: #d7f5e8;
+    }
+    main { display: grid; gap: 1rem; padding-bottom: 2rem; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .panel { min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 1.15rem; background: var(--panel); }
+    .panel > p:first-of-type { margin-top: -.35rem; }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+    .row input, .row select { min-width: 180px; flex: 1; }
+    .notice { min-height: 1.4rem; margin: .8rem 0 0; color: var(--muted); overflow-wrap: anywhere; }
+    .notice.error { color: var(--danger); }
+    .list { display: grid; gap: .65rem; margin-top: .85rem; }
+    .item { border-top: 1px solid var(--line); padding-top: .75rem; overflow-wrap: anywhere; }
+    .item:first-child { border-top: 0; padding-top: 0; }
+    .tag { display: inline-block; border: 1px solid #52677b; border-radius: 999px; padding: .15rem .5rem; color: #c8d6e3; font-size: .78rem; }
+    .tag.pass { border-color: #42866a; color: #a8f0ce; }
+    .tag.fail { border-color: #a44d59; color: #ffb4b4; }
+    .challenge { border: 1px solid var(--line); border-radius: 9px; padding: .85rem; }
+    .challenge p { color: var(--muted); }
+    .challenge form { display: flex; gap: .5rem; margin-top: .65rem; }
+    .challenge form input { min-width: 0; flex: 1; }
+    .finding-actions { display: grid; gap: .55rem; margin-top: .7rem; }
+    .finding-actions input { width: 100%; }
+    .finding-actions .row button { flex: 1; }
+    pre { max-height: 24rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+    footer { width: min(1180px, calc(100% - 2rem)); margin: auto; padding: 0 0 2rem; color: var(--muted); font-size: .9rem; }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      header, main, footer { width: min(100% - 1.2rem, 620px); }
+      .challenge form { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Laboratorio local de formación</p>
+    <h1>{{LAB_NAME}}</h1>
+    <p>Panel guiado para facilitadores y alumnos: de la campaña sintética a la evidencia y verificación.</p>
+    <p class="status" id="portal-status" role="status">Comprobando el portal…</p>
+  </header>
+
+  <main>
+    <div class="safety">
+      <strong>Entorno seguro:</strong> identidades y datos sintéticos. Los mensajes se entregan solamente a MailHog local.
+      No introduzcas credenciales reales ni dirijas ejercicios a terceros.
+    </div>
+
+    <div class="grid">
+      <section class="panel" aria-labelledby="campaign-title">
+        <h2 id="campaign-title">1. Ejecutar una campaña de práctica</h2>
+        <p class="muted">El envío usa exclusivamente el sumidero MailHog del laboratorio.</p>
+        <div class="row">
+          <label class="muted" for="campaign-select">Campaña</label>
+          <select id="campaign-select"></select>
+          <button id="send-campaign">Enviar campaña sintética</button>
+        </div>
+        <p class="notice" id="campaign-notice" aria-live="polite"></p>
+        <p><a href="http://127.0.0.1:8025" target="_blank" rel="noreferrer">Abrir MailHog local</a></p>
+      </section>
+
+      <section class="panel" aria-labelledby="telemetry-title">
+        <h2 id="telemetry-title">2. Revisar telemetría y detecciones</h2>
+        <p class="muted">Abre el mensaje sintético en MailHog, sigue el enlace de práctica y luego actualiza.</p>
+        <div class="row">
+          <button class="secondary" id="refresh-signals">Actualizar eventos y alertas</button>
+        </div>
+        <p class="notice" id="signals-notice" aria-live="polite"></p>
+        <h3>Alertas</h3>
+        <div class="list" id="alerts-list"></div>
+        <h3>Eventos recientes</h3>
+        <div class="list" id="events-list"></div>
+      </section>
+    </div>
+
+    <section class="panel" aria-labelledby="ctf-title">
+      <h2 id="ctf-title">3. Resolver desafíos CTF con evidencia sintética</h2>
+      <p class="muted">Usa el ID de alumno del laboratorio. Las pistas explican cómo derivar cada bandera a partir de la evidencia.</p>
+      <div class="row">
+        <label for="player-id">ID de alumno</label>
+        <input id="player-id" value="STUDENT-01" maxlength="32" autocomplete="off">
+        <button class="secondary" id="load-score">Actualizar progreso</button>
+        <span id="score-summary" class="tag">Puntaje: —</span>
+      </div>
+      <p class="notice" id="ctf-notice" aria-live="polite"></p>
+      <div class="list" id="challenges-list"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="assessment-title">
+      <h2 id="assessment-title">4. Evaluar, remediar y verificar</h2>
+      <p class="muted">Usa el ID de evaluación sintético para revisar hallazgos y registrar acciones.</p>
+      <div class="row">
+        <label for="assessment-id">ID de evaluación</label>
+        <input id="assessment-id" value="ASM-STUDENT-01" maxlength="64" autocomplete="off">
+        <button id="load-assessment">Cargar evaluación</button>
+        <button class="secondary" id="generate-report" disabled>Generar informe</button>
+        <button class="secondary" id="run-verification" disabled>Ejecutar verificación</button>
+      </div>
+      <p class="notice" id="assessment-notice" aria-live="polite"></p>
+      <div class="list" id="assessment-summary"></div>
+      <div class="list" id="findings-list"></div>
+      <div class="list" id="report-result"></div>
+      <div class="list" id="verification-result"></div>
+    </section>
+  </main>
+
+  <footer>
+    Los resultados PASS solo indican que los controles definidos pasaron sobre los registros sintéticos disponibles; no certifican la seguridad del laboratorio ni de sistemas externos.
+  </footer>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const state = { campaigns: [], challenges: [], completed: new Set(), reportReady: false };
+    const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[char]);
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        cache: "no-store",
+        ...options,
+        headers: { ...(options.body ? { "Content-Type": "application/json" } : {}), ...options.headers }
+      });
+      let result;
+      try { result = await response.json(); }
+      catch { throw new Error(`Respuesta no válida del servicio (${response.status}).`); }
+      if (!response.ok) throw new Error(result.error || `Servicio respondió ${response.status}.`);
+      return result;
+    }
+
+    function notice(id, message, isError = false) {
+      const element = $(id);
+      element.textContent = message;
+      element.classList.toggle("error", isError);
+    }
+
+    function resetReport() {
+      state.reportReady = false;
+      $("generate-report").disabled = false;
+      $("run-verification").disabled = true;
+      $("report-result").replaceChildren();
+      $("verification-result").replaceChildren();
+    }
+
+    async function loadCampaigns() {
+      try {
+        state.campaigns = await api("/api/campaigns");
+        const select = $("campaign-select");
+        select.replaceChildren();
+        for (const campaign of state.campaigns) {
+          const option = document.createElement("option");
+          option.value = campaign.id;
+          option.textContent = campaign.name;
+          select.append(option);
+        }
+        notice("campaign-notice", state.campaigns.length ? "Campañas sintéticas disponibles." : "No hay campañas configuradas.");
+        if (state.campaigns.length) await refreshSignals();
+      } catch (error) {
+        notice("campaign-notice", `No se pudo cargar la campaña: ${error.message}`, true);
+      }
+    }
+
+    async function refreshSignals() {
+      const campaign = $("campaign-select").value;
+      if (!campaign) return;
+      try {
+        const [summary, alerts] = await Promise.all([
+          api(`/api/campaigns/${encodeURIComponent(campaign)}/events`),
+          api(`/api/alerts?campaign=${encodeURIComponent(campaign)}`)
+        ]);
+        renderEvents(summary.events || []);
+        renderAlerts(alerts.alerts || []);
+        notice("signals-notice", "Telemetría y detecciones actualizadas.");
+      } catch (error) {
+        notice("signals-notice", `No se pudo actualizar la telemetría: ${error.message}`, true);
+      }
+    }
+
+    function renderEvents(events) {
+      const root = $("events-list");
+      root.replaceChildren();
+      if (!events.length) {
+        root.textContent = "Aún no hay eventos. Envía una campaña y abre un enlace desde MailHog.";
+        return;
+      }
+      for (const event of events.slice(-20).reverse()) {
+        const item = document.createElement("div");
+        item.className = "item";
+        item.textContent = `${event.timestamp} · ${event.event_type} · ${event.user_id} · ${event.correlation_id}`;
+        root.append(item);
+      }
+    }
+
+    function renderAlerts(alerts) {
+      const root = $("alerts-list");
+      root.replaceChildren();
+      if (!alerts.length) {
+        root.textContent = "Sin alertas por ahora. Las reglas necesitan varias interacciones sintéticas.";
+        return;
+      }
+      for (const alert of alerts) {
+        const item = document.createElement("div");
+        item.className = "item";
+        item.textContent = `${alert.severity} · ${alert.title} · ${alert.evidence_count} evidencias · ${alert.correlation_id}`;
+        root.append(item);
+      }
+    }
+
+    async function sendCampaign() {
+      const campaign = $("campaign-select").value;
+      if (!campaign) return notice("campaign-notice", "Selecciona una campaña.", true);
+      if (!window.confirm("Se enviarán mensajes sintéticos solo al MailHog local. ¿Continuar?")) return;
+      $("send-campaign").disabled = true;
+      try {
+        const result = await api(`/api/campaigns/${encodeURIComponent(campaign)}/send`, { method: "POST" });
+        notice("campaign-notice", `Envío local iniciado: ${result.delivered} mensajes · ejecución ${result.run_id}. Revisa MailHog.`);
+        resetReport();
+        await refreshSignals();
+      } catch (error) {
+        notice("campaign-notice", `No se pudo enviar: ${error.message}`, true);
+      } finally {
+        $("send-campaign").disabled = false;
+      }
+    }
+
+    async function loadChallenges() {
+      try {
+        state.challenges = await api("/api/ctf/challenges");
+        await loadScore();
+      } catch (error) {
+        notice("ctf-notice", `No se pudieron cargar los desafíos: ${error.message}`, true);
+      }
+    }
+
+    async function loadScore() {
+      const player = $("player-id").value.trim();
+      if (!player) return notice("ctf-notice", "Escribe un ID de alumno válido.", true);
+      try {
+        const score = await api(`/api/ctf/score?player=${encodeURIComponent(player)}`);
+        state.completed = new Set(score.completed.map((entry) => entry.challenge_id));
+        $("score-summary").textContent = `Puntaje: ${score.score} · ${state.completed.size}/${state.challenges.length} desafíos`;
+        renderChallenges();
+        notice("ctf-notice", "Progreso actualizado.");
+      } catch (error) {
+        notice("ctf-notice", `No se pudo cargar el progreso: ${error.message}`, true);
+      }
+    }
+
+    function renderChallenges() {
+      const root = $("challenges-list");
+      root.replaceChildren();
+      for (const challenge of state.challenges) {
+        const completed = state.completed.has(challenge.id);
+        const locked = challenge.prerequisite && !state.completed.has(challenge.prerequisite);
+        const card = document.createElement("article");
+        card.className = "challenge";
+        const heading = document.createElement("h3");
+        heading.textContent = `${challenge.title} · ${challenge.points} puntos`;
+        const objective = document.createElement("p");
+        objective.textContent = challenge.objective;
+        const status = document.createElement("span");
+        status.className = `tag ${completed ? "pass" : ""}`;
+        status.textContent = completed ? "Completado" : locked ? `Requiere ${challenge.prerequisite}` : "Disponible";
+        const actions = document.createElement("div");
+        actions.className = "row";
+        const hint = document.createElement("button");
+        hint.className = "secondary";
+        hint.textContent = "Ver pista";
+        const hintText = document.createElement("span");
+        hintText.className = "muted";
+        hint.addEventListener("click", async () => {
+          try {
+            const result = await api(`/api/ctf/challenges/${encodeURIComponent(challenge.id)}/hint`);
+            hintText.textContent = result.hint;
+          } catch (error) {
+            notice("ctf-notice", `No se pudo cargar la pista: ${error.message}`, true);
+          }
+        });
+        actions.append(hint, hintText);
+        card.append(heading, objective, status, actions);
+        if (!completed && !locked) {
+          const form = document.createElement("form");
+          const flag = document.createElement("input");
+          flag.name = "flag";
+          flag.required = true;
+          flag.maxLength = 64;
+          flag.autocomplete = "off";
+          flag.placeholder = "Bandera derivada de la evidencia";
+          flag.setAttribute("aria-label", `Bandera para ${challenge.title}`);
+          const submit = document.createElement("button");
+          submit.textContent = "Validar bandera";
+          form.append(flag, submit);
+          form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            submit.disabled = true;
+            try {
+              await api("/api/ctf/submit", {
+                method: "POST",
+                body: JSON.stringify({
+                  player_id: $("player-id").value.trim(),
+                  challenge_id: challenge.id,
+                  flag: flag.value.trim()
+                })
+              });
+              await loadScore();
+            } catch (error) {
+              notice("ctf-notice", `No se aceptó la bandera: ${error.message}`, true);
+            } finally {
+              submit.disabled = false;
+            }
+          });
+          card.append(form);
+        }
+        root.append(card);
+      }
+    }
+
+    function renderAssessment(result) {
+      const summary = $("assessment-summary");
+      summary.replaceChildren();
+      const risk = result.risk || {};
+      const overview = document.createElement("div");
+      overview.className = "item";
+      overview.textContent = `Hallazgos: ${result.findings.length} · Peso inicial: ${risk.risk_points_initial ?? "—"} · Residual: ${risk.risk_points_residual ?? "—"} · Ponderación contextual de entrenamiento, no CVSS.`;
+      summary.append(overview);
+
+      const findings = $("findings-list");
+      findings.replaceChildren();
+      if (!result.findings.length) {
+        findings.textContent = "No hay hallazgos derivados. Genera interacciones suficientes y vuelve a cargar.";
+        return;
+      }
+      for (const finding of result.findings) {
+        const card = document.createElement("article");
+        card.className = "challenge";
+        const heading = document.createElement("h3");
+        heading.textContent = `${finding.finding_id} · ${finding.severity} · ${finding.status}`;
+        const evidence = document.createElement("p");
+        evidence.textContent = `Regla ${finding.evidence.rule_id} · ejecución ${finding.correlation_id}`;
+        const controls = document.createElement("div");
+        controls.className = "finding-actions";
+        const note = document.createElement("input");
+        note.maxLength = 500;
+        note.placeholder = "Nota y evidencia de la acción (obligatoria)";
+        note.setAttribute("aria-label", `Nota para ${finding.finding_id}`);
+        const buttons = document.createElement("div");
+        buttons.className = "row";
+        for (const action of [
+          ["REMEDIATION", "PLANNED", "Registrar remediación"],
+          ["REMEDIATION", "VERIFIED", "Marcar remediación verificada"],
+          ["RETEST", "VERIFIED", "Registrar retest"]
+        ]) {
+          const button = document.createElement("button");
+          button.className = "secondary";
+          button.textContent = action[2];
+          button.addEventListener("click", async () => {
+            if (!note.value.trim()) {
+              notice("assessment-notice", "Describe la nota/evidencia antes de registrar la acción.", true);
+              note.focus();
+              return;
+            }
+            button.disabled = true;
+            try {
+              await api("/api/actions", {
+                method: "POST",
+                body: JSON.stringify({
+                  finding_id: finding.finding_id,
+                  action_type: action[0],
+                  status: action[1],
+                  description: note.value.trim(),
+                  evidence: { note: note.value.trim(), source: "local-training-dashboard" }
+                })
+              });
+              resetReport();
+              await loadAssessment();
+              notice("assessment-notice", "Acción registrada en la evaluación.");
+            } catch (error) {
+              notice("assessment-notice", `No se pudo registrar la acción: ${error.message}`, true);
+            } finally {
+              button.disabled = false;
+            }
+          });
+          buttons.append(button);
+        }
+        controls.append(note, buttons);
+        card.append(heading, evidence, controls);
+        findings.append(card);
+      }
+    }
+
+    async function loadAssessment() {
+      const id = $("assessment-id").value.trim();
+      if (!id) return notice("assessment-notice", "Escribe un ID de evaluación válido.", true);
+      resetReport();
+      $("assessment-summary").replaceChildren();
+      $("findings-list").replaceChildren();
+      try {
+        const result = await api(`/api/assessment?id=${encodeURIComponent(id)}`);
+        renderAssessment(result);
+        notice("assessment-notice", "Evaluación cargada.");
+      } catch (error) {
+        notice("assessment-notice", `No se pudo cargar la evaluación: ${error.message}`, true);
+      }
+    }
+
+    async function generateReport() {
+      const id = $("assessment-id").value.trim();
+      $("generate-report").disabled = true;
+      try {
+        const report = await api(`/api/report?id=${encodeURIComponent(id)}`);
+        const item = document.createElement("div");
+        item.className = "item";
+        item.innerHTML = `<strong>Informe ${escapeHtml(report.report_id)}</strong><br>${escapeHtml(report.executive_summary.finding_count)} hallazgos · Generado ${escapeHtml(report.generated_at)}<details><summary>Ver resumen</summary><pre>${escapeHtml(JSON.stringify(report.executive_summary, null, 2))}</pre></details>`;
+        $("report-result").replaceChildren(item);
+        state.reportReady = true;
+        $("run-verification").disabled = false;
+        notice("assessment-notice", "Informe generado y auditado.");
+      } catch (error) {
+        notice("assessment-notice", `No se pudo generar el informe: ${error.message}`, true);
+      } finally {
+        $("generate-report").disabled = false;
+      }
+    }
+
+    async function runVerification() {
+      if (!state.reportReady) return;
+      const id = $("assessment-id").value.trim();
+      $("run-verification").disabled = true;
+      try {
+        const run = await api(`/api/verify?id=${encodeURIComponent(id)}`);
+        const root = $("verification-result");
+        root.replaceChildren();
+        const heading = document.createElement("div");
+        heading.className = "item";
+        const tag = document.createElement("span");
+        tag.className = `tag ${run.status === "PASS" ? "pass" : "fail"}`;
+        tag.textContent = `${run.status} · ejecución ${run.run_id}`;
+        heading.append(tag);
+        root.append(heading);
+        for (const check of run.checks) {
+          const item = document.createElement("div");
+          item.className = "item";
+          item.textContent = `${check.control_id}: ${check.status}`;
+          root.append(item);
+        }
+        notice("assessment-notice", "Verificación completada. PASS se limita a los controles y registros sintéticos disponibles.");
+      } catch (error) {
+        notice("assessment-notice", `No se pudo verificar: ${error.message}`, true);
+      } finally {
+        $("run-verification").disabled = !state.reportReady;
+      }
+    }
+
+    $("portal-status").textContent = "Portal local disponible.";
+    $("send-campaign").addEventListener("click", sendCampaign);
+    $("refresh-signals").addEventListener("click", refreshSignals);
+    $("campaign-select").addEventListener("change", refreshSignals);
+    $("load-score").addEventListener("click", loadScore);
+    $("load-assessment").addEventListener("click", loadAssessment);
+    $("generate-report").addEventListener("click", generateReport);
+    $("run-verification").addEventListener("click", runVerification);
+    $("assessment-id").addEventListener("input", () => {
+      resetReport();
+      $("assessment-summary").replaceChildren();
+      $("findings-list").replaceChildren();
+    });
+    loadCampaigns();
+    loadChallenges();
+  </script>
+</body>
+</html>

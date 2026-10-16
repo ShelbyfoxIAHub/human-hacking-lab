@@ -16,6 +16,16 @@ jobs:
       - name: Run artifact tests
         run: python -m unittest discover -s tests -p 'test_*.py'
 
+      - name: Start isolated lab
+        run: docker compose -f infra/docker-compose.yml up --build -d
+
+      - name: Smoke test guided dashboard
+        run: python tests/smoke_dashboard.py
+
+      - name: Stop isolated lab
+        if: always()
+        run: docker compose -f infra/docker-compose.yml down --volumes
+
       - name: Check for obvious secret files
         run: |
           ! find . -type f \( -name "*.pem" -o -name "*.key" -o -name ".env" \) -not -path "./.git/*" | grep .

@@ -37,5 +37,6 @@ Phase 05 CTF ✓
 Phase 06 Assessment ✓
 Phase 07 Reporting / Governance ✓
 Phase 08 Control Verification / Regression Gate ✓
+Phase 09 Guided Instructor / Learner Dashboard — in progress
 
 Phase 08 PASS means only that the defined verification controls passed against the available synthetic records at verification time. It is not a declaration that the lab or any external system is secure.

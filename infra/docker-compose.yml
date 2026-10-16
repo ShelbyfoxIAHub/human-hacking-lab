@@ -5,10 +5,15 @@ services:
     environment:
       LAB_NAME: Human Hacking Lab
       SIMULATOR_URL: http://simulator:8090
+      DETECTION_URL: http://detection:8091
+      CTF_URL: http://ctf:8092
+      ASSESSMENT_URL: http://assessment:8093
+      REPORTING_URL: http://reporting:8094
+      VERIFICATION_URL: http://verification:8095
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
-      simulator:
+      verification:
         condition: service_healthy
     networks: [lab]
 
