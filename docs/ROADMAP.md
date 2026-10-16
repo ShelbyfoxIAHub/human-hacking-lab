@@ -115,10 +115,16 @@
 - read-only telemetry access and dashboard/CI validation
 
 ## Phase 14 — Security Engineering / Lab Isolation — in progress
-- Docker lab network configured with external egress disabled
+- core service network is internal; dashboard/MailHog use a separate
+  loopback-published, non-masquerading host-access network
+- external egress is reduced on the host-access network but not guaranteed
+  blocked without host firewall policy
 - all published lab ports regression-checked for loopback binding
 - Compose configuration validation runs before the CI integration smoke
 - safe-use and stop conditions documented for the network boundary
+- temporary inline Compose Dockerfiles avoid the current Compose/Buildx
+  filesystem-entitlement issue; revert after the fixed stable release passes
+  the full build and smoke checks
 
 ## Phase 15 — Blue Team Alert Triage — in progress
 - evidence event IDs attached to campaign-wide alerts

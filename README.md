@@ -27,6 +27,10 @@ docker compose -f infra/docker-compose.yml up -d --build
 
 All exposed lab services remain loopback-bound.
 
+The current Compose build and host-access network compatibility notes, including
+the safe migration criteria after Docker Compose updates, are documented in
+[docs/SECURITY-ENGINEERING.md](./docs/SECURITY-ENGINEERING.md).
+
 ## Phase status
 
 Phase 01 Foundation ✓
