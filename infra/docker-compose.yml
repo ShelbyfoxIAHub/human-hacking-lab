@@ -1,6 +1,15 @@
 services:
   web:
-    build: ../apps/web
+    build:
+      context: ../apps/web
+      dockerfile_inline: |
+        FROM python:3.12-alpine
+        WORKDIR /app
+        COPY app.py .
+        COPY index.html .
+        COPY curriculum.json .
+        EXPOSE 8080
+        CMD ["python", "app.py"]
     container_name: hhl-web
     environment:
       LAB_NAME: Human Hacking Lab
@@ -10,24 +19,47 @@ services:
       ASSESSMENT_URL: http://assessment:8093
       REPORTING_URL: http://reporting:8094
       VERIFICATION_URL: http://verification:8095
+      OSINT_URL: http://osint:8096
+      APPSEC_URL: http://appsec:8097
+      HRM_URL: http://hrm:8098
+      BLUE_TEAM_URL: http://blueteam:8099
     ports:
       - "127.0.0.1:8080:8080"
+    networks: [lab, host-access]
     depends_on:
       verification:
         condition: service_healthy
-    networks: [lab]
+      osint:
+        condition: service_healthy
+      appsec:
+        condition: service_healthy
+      hrm:
+        condition: service_healthy
+      blueteam:
+        condition: service_healthy
 
   mail:
     image: mailhog/mailhog:v1.0.1
     container_name: hhl-mail
     ports:
       - "127.0.0.1:8025:8025"
-    networks: [lab]
+    networks: [lab, host-access]
 
   simulator:
     build:
-      context: ..
-      dockerfile: apps/simulator/Dockerfile
+      context: ../apps/simulator
+      additional_contexts:
+        hhl_users: ../scenarios
+      dockerfile_inline: |
+        FROM python:3.12-alpine
+        WORKDIR /app
+        COPY app.py .
+        COPY telemetry.py .
+        COPY campaigns.json .
+        COPY scenarios.json .
+        COPY --from=hhl_users users.csv .
+        EXPOSE 8090
+        CMD ["python", "app.py"]
     container_name: hhl-simulator
     environment:
       PORT: "8090"
@@ -51,8 +83,13 @@ services:
 
   detection:
     build:
-      context: ..
-      dockerfile: apps/detection/Dockerfile
+      context: ../apps/detection
+      dockerfile_inline: |
+        FROM python:3.12-alpine
+        WORKDIR /app
+        COPY detector.py .
+        EXPOSE 8091
+        CMD ["python", "detector.py"]
     container_name: hhl-detection
     environment:
       DB_PATH: /data/hhl-simulation.db
@@ -71,10 +108,110 @@ services:
       retries: 10
     networks: [lab]
 
+  osint:
+    build:
+      context: ../apps/osint
+      dockerfile_inline: |
+        FROM python:3.12-alpine
+        WORKDIR /app
+        COPY osint.py .
+        COPY sources.json .
+        EXPOSE 8096
+        CMD ["python", "osint.py"]
+    container_name: hhl-osint
+    ports:
+      - "127.0.0.1:8096:8096"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8096/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [lab]
+
+  appsec:
+    build:
+      context: ../apps/appsec
+      dockerfile_inline: |
+        FROM python:3.12-alpine
+        WORKDIR /app
+        COPY appsec.py .
+        COPY modules.json .
+        EXPOSE 8097
+        CMD ["python", "appsec.py"]
+    container_name: hhl-appsec
+    ports:
+      - "127.0.0.1:8097:8097"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8097/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [lab]
+
+  hrm:
+    build:
+      context: ../apps/hrm
+      dockerfile_inline: |
+        FROM python:3.12-alpine
+        WORKDIR /app
+        COPY hrm.py .
+        EXPOSE 8098
+        CMD ["python", "hrm.py"]
+    container_name: hhl-hrm
+    environment:
+      TELEMETRY_DB_PATH: /telemetry/hhl-simulation.db
+      PORT: "8098"
+    ports:
+      - "127.0.0.1:8098:8098"
+    volumes:
+      - simulator-data:/telemetry:ro
+    depends_on:
+      simulator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8098/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [lab]
+
+  blueteam:
+    build:
+      context: ../apps/blue_team
+      dockerfile_inline: |
+        FROM python:3.12-alpine
+        WORKDIR /app
+        COPY blue_team.py .
+        EXPOSE 8099
+        CMD ["python", "blue_team.py"]
+    container_name: hhl-blue-team
+    environment:
+      DETECTION_URL: http://detection:8091
+      TRIAGE_DB_PATH: /data/hhl-blue-team.db
+      PORT: "8099"
+    ports:
+      - "127.0.0.1:8099:8099"
+    volumes:
+      - blue-team-data:/data
+    depends_on:
+      detection:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8099/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [lab]
+
   ctf:
     build:
-      context: ..
-      dockerfile: apps/ctf/Dockerfile
+      context: ../apps/ctf
+      dockerfile_inline: |
+        FROM python:3.12-alpine
+        WORKDIR /app
+        COPY ctf.py .
+        EXPOSE 8092
+        CMD ["python", "ctf.py"]
     container_name: hhl-ctf
     environment:
       TELEMETRY_DB_PATH: /telemetry/hhl-simulation.db
@@ -99,8 +236,13 @@ services:
 
   assessment:
     build:
-      context: ..
-      dockerfile: apps/assessment/Dockerfile
+      context: ../apps/assessment
+      dockerfile_inline: |
+        FROM python:3.12-alpine
+        WORKDIR /app
+        COPY assessment.py .
+        EXPOSE 8093
+        CMD ["python", "assessment.py"]
     container_name: hhl-assessment
     environment:
       TELEMETRY_DB_PATH: /telemetry/hhl-simulation.db
@@ -125,8 +267,13 @@ services:
 
   reporting:
     build:
-      context: ..
-      dockerfile: apps/reporting/Dockerfile
+      context: ../apps/reporting
+      dockerfile_inline: |
+        FROM python:3.12-slim
+        WORKDIR /app
+        COPY reporting.py /app/reporting.py
+        EXPOSE 8094
+        CMD ["python", "/app/reporting.py"]
     container_name: hhl-reporting
     environment:
       ASSESSMENT_DB_PATH: /assessment/hhl-assessment.db
@@ -151,8 +298,13 @@ services:
 
   verification:
     build:
-      context: ..
-      dockerfile: apps/verification/Dockerfile
+      context: ../apps/verification
+      dockerfile_inline: |
+        FROM python:3.12-slim
+        WORKDIR /app
+        COPY verification.py /app/verification.py
+        EXPOSE 8095
+        CMD ["python", "/app/verification.py"]
     container_name: hhl-verification
     environment:
       ASSESSMENT_DB_PATH: /assessment/hhl-assessment.db
@@ -179,6 +331,12 @@ networks:
   lab:
     name: hhl-isolated
     driver: bridge
+    internal: true
+  host-access:
+    name: hhl-host-access
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "false"
 
 volumes:
   simulator-data:
@@ -193,3 +351,5 @@ volumes:
     name: hhl-reporting-reports
   verification-data:
     name: hhl-verification-data
+  blue-team-data:
+    name: hhl-blue-team-data

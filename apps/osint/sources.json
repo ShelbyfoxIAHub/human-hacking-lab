@@ -1,0 +1,78 @@
+{
+  "dataset_id": "OSINT-HHL-SYNTH-01",
+  "classification": "SYNTHETIC TRAINING DATA — NOT INTERNET-SOURCED",
+  "sources": [
+    {
+      "source_id": "OSINT-SRC-001",
+      "source_type": "simulated_registration",
+      "title": "Synthetic organization registration snapshot",
+      "uri": "northstar-lab.invalid",
+      "observed_at": "2026-10-01T09:00:00Z",
+      "confidence": "SIMULATED",
+      "summary": "The fictional Northstar Training Lab lists northstar-lab.invalid as its public training domain. All registration details are fabricated.",
+      "indicators": ["northstar-lab.invalid", "Northstar Training Lab"],
+      "entity_ids": ["SYN-ORG-001", "SYN-ASSET-001"],
+      "collection_method": "Bundled synthetic registration fixture"
+    },
+    {
+      "source_id": "OSINT-SRC-002",
+      "source_type": "simulated_dns",
+      "title": "Synthetic DNS inventory",
+      "uri": "dns.northstar-lab.invalid",
+      "observed_at": "2026-10-02T12:30:00Z",
+      "confidence": "SIMULATED",
+      "summary": "A fabricated DNS snapshot lists vpn.northstar-lab.invalid and staging.northstar-lab.invalid. The example address 192.0.2.44 is reserved for documentation.",
+      "indicators": ["vpn.northstar-lab.invalid", "staging.northstar-lab.invalid", "192.0.2.44"],
+      "entity_ids": ["SYN-ORG-001", "SYN-ASSET-001", "SYN-ASSET-002"],
+      "collection_method": "Bundled synthetic DNS fixture; no DNS query is performed"
+    },
+    {
+      "source_id": "OSINT-SRC-003",
+      "source_type": "simulated_profile",
+      "title": "Synthetic staff directory entry",
+      "uri": "directory.northstar-lab.invalid/staff",
+      "observed_at": "2026-10-03T08:15:00Z",
+      "confidence": "SIMULATED",
+      "summary": "A fabricated profile associates the handle analyst-amber with the synthetic organization and analyst-amber@northstar-lab.invalid.",
+      "indicators": ["analyst-amber", "analyst-amber@northstar-lab.invalid"],
+      "entity_ids": ["SYN-ORG-001", "SYN-PERSON-001"],
+      "collection_method": "Bundled synthetic directory fixture"
+    },
+    {
+      "source_id": "OSINT-SRC-004",
+      "source_type": "simulated_repository",
+      "title": "Synthetic repository metadata",
+      "uri": "code.northstar-lab.invalid/training/inventory",
+      "observed_at": "2026-10-04T16:45:00Z",
+      "confidence": "SIMULATED",
+      "summary": "Fabricated repository metadata references staging.northstar-lab.invalid and the analyst-amber handle. No repository host or network is contacted.",
+      "indicators": ["staging.northstar-lab.invalid", "analyst-amber"],
+      "entity_ids": ["SYN-ORG-001", "SYN-PERSON-001", "SYN-ASSET-002"],
+      "collection_method": "Bundled synthetic repository fixture"
+    },
+    {
+      "source_id": "OSINT-SRC-005",
+      "source_type": "simulated_document_index",
+      "title": "Synthetic onboarding document index",
+      "uri": "docs.northstar-lab.invalid/public/onboarding",
+      "observed_at": "2026-10-05T10:10:00Z",
+      "confidence": "SIMULATED",
+      "summary": "A fabricated document index repeats the analyst-amber handle and references the vpn.northstar-lab.invalid service. It contains no real schedules or personal information.",
+      "indicators": ["analyst-amber", "vpn.northstar-lab.invalid"],
+      "entity_ids": ["SYN-ORG-001", "SYN-PERSON-001", "SYN-ASSET-003"],
+      "collection_method": "Bundled synthetic document fixture"
+    },
+    {
+      "source_id": "OSINT-SRC-006",
+      "source_type": "simulated_social_post",
+      "title": "Synthetic public status post",
+      "uri": "social.northstar-lab.invalid/posts/001",
+      "observed_at": "2026-10-06T14:20:00Z",
+      "confidence": "SIMULATED",
+      "summary": "A fabricated status post from northstar-training mentions a maintenance window and northstar-lab.invalid. The post is not published on a real social platform.",
+      "indicators": ["northstar-training", "northstar-lab.invalid"],
+      "entity_ids": ["SYN-ORG-001", "SYN-PERSON-002"],
+      "collection_method": "Bundled synthetic social-content fixture"
+    }
+  ]
+}

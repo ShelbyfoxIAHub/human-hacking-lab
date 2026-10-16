@@ -7,7 +7,7 @@ class ReportingArtifactsTest(unittest.TestCase):
     def read(self,p): return (ROOT/p).read_text(encoding="utf-8")
 
     def test_required_artifacts_exist(self):
-        for p in ["apps/reporting/reporting.py","apps/reporting/Dockerfile","docs/REPORTING.md","exercises/phase-07/HHL-07.md"]:
+        for p in ["apps/reporting/reporting.py","docs/REPORTING.md","exercises/phase-07/HHL-07.md"]:
             self.assertTrue((ROOT/p).exists(),p)
 
     def test_loopback_and_port(self):

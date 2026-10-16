@@ -38,5 +38,25 @@ Phase 06 Assessment ✓
 Phase 07 Reporting / Governance ✓
 Phase 08 Control Verification / Regression Gate ✓
 Phase 09 Guided Instructor / Learner Dashboard — in progress
+Phase 10 Threat Hunting / DFIR — in progress
+Phase 11 Synthetic OSINT — in progress
+Phase 12 Secure AppSec Review — in progress
+Phase 13 Privacy-Safe Human Risk Management — in progress
+Phase 14 Security Engineering / Lab Isolation — in progress
+Phase 15 Blue Team Alert Triage — in progress
+Phase 16 Controlled Red Team Scenario — in progress
+Phase 17 Integrated Curriculum — in progress
+
+See docs/THREAT-HUNTING-DFIR.md and exercises/phase-10/HHL-10.md for the hunt
+and incident reconstruction workflow; see docs/OSINT.md and
+exercises/phase-11/HHL-11.md for the synthetic OSINT workflow; see
+docs/APPSEC.md and exercises/phase-12/HHL-12.md for static secure-code review;
+see docs/HRM.md and exercises/phase-13/HHL-13.md for aggregate-only HRM; see
+docs/SECURITY-ENGINEERING.md and exercises/phase-14/HHL-14.md for the isolation
+and CI guardrails; see docs/BLUE-TEAM.md and exercises/phase-15/HHL-15.md for
+evidence-linked alert triage; see docs/RED-TEAM.md and
+exercises/phase-16/HHL-16.md for the preauthorized simulation scenario; see
+docs/CURRICULUM.md and exercises/phase-17/HHL-17.md for integrated learning
+paths and progress.
 
 Phase 08 PASS means only that the defined verification controls passed against the available synthetic records at verification time. It is not a declaration that the lab or any external system is secure.

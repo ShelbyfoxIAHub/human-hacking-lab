@@ -5,7 +5,7 @@ Phase 04 introduces deterministic, explainable detection over synthetic telemetr
 | Rule | Condition | Severity | Evidence |
 |---|---|---|---|
 | HHL-D001 | >3 clicks by one synthetic user in one campaign run | MEDIUM | event IDs + user + correlation ID |
-| HHL-D002 | >=5 synthetic users click in one campaign run | MEDIUM | user IDs + correlation ID |
+| HHL-D002 | >=5 synthetic users click in one campaign run | MEDIUM | user IDs + correlation ID + supporting event IDs |
 
 ## Design principles
 

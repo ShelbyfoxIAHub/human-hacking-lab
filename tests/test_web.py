@@ -14,6 +14,46 @@ class DashboardProxyRoutesTest(unittest.TestCase):
             ("detection", "/alerts?campaign=HHL02-A"),
         )
         self.assertEqual(
+            resolve_api_request("GET", "/api/hunts", "campaign=HHL02-A"),
+            ("detection", "/hunts?campaign=HHL02-A"),
+        )
+        self.assertEqual(
+            resolve_api_request("GET", "/api/timeline", "run=run-123"),
+            ("detection", "/timeline?run=run-123"),
+        )
+        self.assertEqual(
+            resolve_api_request(
+                "GET", "/api/osint/search", "q=analyst-amber"
+            ),
+            ("osint", "/search?q=analyst-amber"),
+        )
+        self.assertEqual(
+            resolve_api_request("GET", "/api/appsec/modules"),
+            ("appsec", "/modules"),
+        )
+        self.assertEqual(
+            resolve_api_request("GET", "/api/appsec/analyze", "id=APPSEC-01"),
+            ("appsec", "/analyze?id=APPSEC-01"),
+        )
+        self.assertEqual(
+            resolve_api_request(
+                "GET", "/api/hrm/summary", "campaign=HHL02-A"
+            ),
+            ("hrm", "/summary?campaign=HHL02-A"),
+        )
+        self.assertEqual(
+            resolve_api_request("GET", "/api/triage", "campaign=HHL02-A"),
+            ("blueteam", "/records?campaign=HHL02-A"),
+        )
+        self.assertEqual(
+            resolve_api_request("POST", "/api/triage"),
+            ("blueteam", "/records"),
+        )
+        self.assertEqual(
+            resolve_api_request("GET", "/api/red-team/scenarios"),
+            ("simulator", "/scenarios"),
+        )
+        self.assertEqual(
             resolve_api_request("POST", "/api/actions"),
             ("assessment", "/actions"),
         )
@@ -36,6 +76,34 @@ class DashboardProxyRoutesTest(unittest.TestCase):
         self.assertIsNone(
             resolve_api_request("GET", "/api/ctf/score", "player=bad%20id")
         )
+        self.assertIsNone(resolve_api_request("GET", "/api/hunts"))
+        self.assertIsNone(
+            resolve_api_request("GET", "/api/timeline", "run=..%2Fother")
+        )
+        self.assertIsNone(resolve_api_request("GET", "/api/osint/search"))
+        self.assertIsNone(
+            resolve_api_request(
+                "GET", "/api/osint/search", "q=https%3A%2F%2Fexample.com"
+            )
+        )
+        self.assertIsNone(
+            resolve_api_request(
+                "GET", "/api/osint/search", "q=analyst-amber&q=external"
+            )
+        )
+        self.assertIsNone(resolve_api_request("GET", "/api/appsec/analyze"))
+        self.assertIsNone(
+            resolve_api_request(
+                "GET", "/api/appsec/analyze", "id=..%2Fexternal"
+            )
+        )
+        self.assertIsNone(resolve_api_request("GET", "/api/hrm/summary"))
+        self.assertIsNone(
+            resolve_api_request(
+                "GET", "/api/hrm/summary", "campaign=HHL02-A&campaign=HHL02-B"
+            )
+        )
+        self.assertIsNone(resolve_api_request("GET", "/api/triage"))
 
     def test_unknown_routes_and_methods_are_not_proxyable(self):
         self.assertIsNone(resolve_api_request("GET", "/api/proxy/http://example.com"))

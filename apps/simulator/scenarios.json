@@ -1,0 +1,35 @@
+{
+  "scenarios": [
+    {
+      "scenario_id": "HHL-RT-01",
+      "title": "Synthetic link-based social-engineering simulation",
+      "campaign_id": "HHL02-A",
+      "objective": "Validate that the training workflow generates correlated synthetic delivery, click and detection evidence.",
+      "scope": [
+        "Only the five synthetic identities shipped with the lab",
+        "Only the preconfigured HHL02-A message",
+        "Delivery only to the local MailHog sink"
+      ],
+      "permitted_actions": [
+        "Send the preconfigured message to synthetic identities",
+        "Open training links from the local MailHog interface",
+        "Review resulting synthetic events and detections"
+      ],
+      "prohibited_actions": [
+        "Real identities, recipients or personal data",
+        "Credential collection or password entry",
+        "External delivery, domains, targets or infrastructure",
+        "Unbounded payloads, arbitrary templates or exploit execution"
+      ],
+      "stop_conditions": [
+        "Any real identity or credential is introduced",
+        "Traffic leaves the isolated lab network",
+        "Mail is not confined to the local MailHog sink"
+      ],
+      "success_evidence": [
+        "A correlated campaign run in synthetic telemetry",
+        "HHL-D001 or HHL-D002 evidence after controlled training interactions"
+      ]
+    }
+  ]
+}

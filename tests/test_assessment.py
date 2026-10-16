@@ -3,7 +3,7 @@ from pathlib import Path
 ROOT=Path(__file__).parents[1]
 class AssessmentArtifactsTest(unittest.TestCase):
  def test_artifacts(self):
-  for p in ["apps/assessment/assessment.py","apps/assessment/Dockerfile","docs/ASSESSMENT.md","exercises/phase-06/HHL-06.md"]:
+  for p in ["apps/assessment/assessment.py","docs/ASSESSMENT.md","exercises/phase-06/HHL-06.md"]:
    self.assertTrue((ROOT/p).exists(),p)
  def test_loopback(self):
   c=(ROOT/"infra/docker-compose.yml").read_text()

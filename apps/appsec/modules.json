@@ -1,0 +1,25 @@
+{
+  "modules": [
+    {
+      "id": "APPSEC-01",
+      "title": "Parameterized database queries",
+      "objective": "Identify interpolated SQL and replace it with driver-bound parameters.",
+      "source_code": "def find_account(cursor, email):\n    cursor.execute(f\"SELECT id FROM users WHERE email = '{email}'\")\n    return cursor.fetchone()",
+      "remediated_code": "def find_account(cursor, email):\n    cursor.execute(\"SELECT id FROM users WHERE email = ?\", (email,))\n    return cursor.fetchone()"
+    },
+    {
+      "id": "APPSEC-02",
+      "title": "Safe text rendering",
+      "objective": "Identify an unsafe HTML sink and render untrusted values as text.",
+      "source_code": "def render_profile(profile, display_name):\n    profile.innerHTML = display_name",
+      "remediated_code": "def render_profile(profile, display_name):\n    profile.textContent = display_name"
+    },
+    {
+      "id": "APPSEC-03",
+      "title": "Review remediated controls",
+      "objective": "Confirm parameter binding and text-only rendering are present in fixed examples.",
+      "source_code": "def find_account(cursor, email):\n    cursor.execute(\"SELECT id FROM users WHERE email = ?\", (email,))\n    return cursor.fetchone()\n\ndef render_profile(profile, display_name):\n    profile.textContent = display_name",
+      "remediated_code": "def find_account(cursor, email):\n    cursor.execute(\"SELECT id FROM users WHERE email = ?\", (email,))\n    return cursor.fetchone()\n\ndef render_profile(profile, display_name):\n    profile.textContent = display_name"
+    }
+  ]
+}

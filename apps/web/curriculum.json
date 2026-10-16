@@ -1,0 +1,118 @@
+{
+  "curriculum_id": "HHL-INTEGRATED-01",
+  "title": "Integrated Human Hacking Lab Learning Path",
+  "progress_mode": "local_self_reported",
+  "progress_notice": "Progress is a learner self-report stored in this browser only; it is not independently verified.",
+  "modules": [
+    {
+      "id": "FOUNDATIONS",
+      "title": "Lab foundations and rules of engagement",
+      "exercise_id": "HHL-01",
+      "exercise_path": "exercises/phase-01/HHL-01.md",
+      "prerequisites": [],
+      "evidence": [
+        "Explain the synthetic-only scope and local safety boundary",
+        "Identify the lab stop conditions"
+      ]
+    },
+    {
+      "id": "RED-TEAM",
+      "title": "Controlled Red Team scenario",
+      "exercise_id": "HHL-16",
+      "exercise_path": "exercises/phase-16/HHL-16.md",
+      "prerequisites": ["FOUNDATIONS"],
+      "evidence": [
+        "Review the preauthorized scenario and its stop conditions",
+        "Generate a synthetic run confined to local MailHog"
+      ]
+    },
+    {
+      "id": "DETECTION",
+      "title": "Detection Engineering",
+      "exercise_id": "HHL-04",
+      "exercise_path": "exercises/phase-04/HHL-04.md",
+      "prerequisites": ["FOUNDATIONS"],
+      "evidence": [
+        "Explain HHL-D001 and HHL-D002 thresholds",
+        "Cite event evidence for a deterministic alert"
+      ]
+    },
+    {
+      "id": "BLUE-TEAM",
+      "title": "Blue Team alert triage",
+      "exercise_id": "HHL-15",
+      "exercise_path": "exercises/phase-15/HHL-15.md",
+      "prerequisites": ["DETECTION"],
+      "evidence": [
+        "Record a bounded triage disposition",
+        "Link the disposition to the alert's event IDs"
+      ]
+    },
+    {
+      "id": "THREAT-HUNT-DFIR",
+      "title": "Threat Hunting and DFIR",
+      "exercise_id": "HHL-10",
+      "exercise_path": "exercises/phase-10/HHL-10.md",
+      "prerequisites": ["BLUE-TEAM"],
+      "evidence": [
+        "Test the deterministic hunt hypotheses",
+        "Reconstruct a run timeline and cite supporting events"
+      ]
+    },
+    {
+      "id": "OSINT",
+      "title": "Synthetic OSINT correlation",
+      "exercise_id": "HHL-11",
+      "exercise_path": "exercises/phase-11/HHL-11.md",
+      "prerequisites": ["FOUNDATIONS"],
+      "evidence": [
+        "Correlate local synthetic sources by entity ID",
+        "Distinguish observations from inference and cite provenance"
+      ]
+    },
+    {
+      "id": "APPSEC",
+      "title": "Secure AppSec review",
+      "exercise_id": "HHL-12",
+      "exercise_path": "exercises/phase-12/HHL-12.md",
+      "prerequisites": ["FOUNDATIONS"],
+      "evidence": [
+        "Explain parameterized queries and safe text rendering",
+        "State the limits of the bundled static rules"
+      ]
+    },
+    {
+      "id": "HUMAN-RISK",
+      "title": "Privacy-safe Human Risk Management",
+      "exercise_id": "HHL-13",
+      "exercise_path": "exercises/phase-13/HHL-13.md",
+      "prerequisites": ["RED-TEAM", "BLUE-TEAM"],
+      "evidence": [
+        "Interpret aggregate synthetic campaign metrics",
+        "Recommend a training or control improvement without ranking people"
+      ]
+    },
+    {
+      "id": "SECURITY-ENGINEERING",
+      "title": "Security Engineering and isolation",
+      "exercise_id": "HHL-14",
+      "exercise_path": "exercises/phase-14/HHL-14.md",
+      "prerequisites": ["FOUNDATIONS", "BLUE-TEAM", "APPSEC"],
+      "evidence": [
+        "Verify the internal Docker network and loopback-only ports",
+        "Explain the CI configuration gate and its limits"
+      ]
+    },
+    {
+      "id": "GOVERNANCE",
+      "title": "Assessment, reporting and verification",
+      "exercise_id": "HHL-08",
+      "exercise_path": "exercises/phase-08/HHL-08.md",
+      "prerequisites": ["THREAT-HUNT-DFIR", "HUMAN-RISK", "SECURITY-ENGINEERING"],
+      "evidence": [
+        "Generate an evidence-linked report",
+        "Run the regression gate and describe what PASS does not prove"
+      ]
+    }
+  ]
+}

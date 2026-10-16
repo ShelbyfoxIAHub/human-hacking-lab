@@ -18,12 +18,18 @@ SERVICE_URLS = {
     "assessment": os.getenv("ASSESSMENT_URL", "http://assessment:8093"),
     "reporting": os.getenv("REPORTING_URL", "http://reporting:8094"),
     "verification": os.getenv("VERIFICATION_URL", "http://verification:8095"),
+    "osint": os.getenv("OSINT_URL", "http://osint:8096"),
+    "appsec": os.getenv("APPSEC_URL", "http://appsec:8097"),
+    "hrm": os.getenv("HRM_URL", "http://hrm:8098"),
+    "blueteam": os.getenv("BLUE_TEAM_URL", "http://blueteam:8099"),
 }
 PAGE_PATH = Path(__file__).with_name("index.html")
+CURRICULUM_PATH = Path(__file__).with_name("curriculum.json")
 MAX_REQUEST_BYTES = 16_384
 MAX_RESPONSE_BYTES = 2_097_152
 ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 PLAYER_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$")
+OSINT_QUERY_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._@-]{0,79}$")
 LOGGER = logging.getLogger("hhl-web")
 
 
@@ -66,6 +72,48 @@ def resolve_api_request(method, path, query_string=""):
                 return None
             return "detection", f"/alerts?{urlencode({'campaign': campaign_id})}"
 
+        if path == "/api/hunts":
+            campaign_id = _single_query_value(query, "campaign")
+            if campaign_id is None:
+                return None
+            return "detection", f"/hunts?{urlencode({'campaign': campaign_id})}"
+
+        if path == "/api/timeline":
+            run_id = _single_query_value(query, "run")
+            if run_id is None:
+                return None
+            return "detection", f"/timeline?{urlencode({'run': run_id})}"
+
+        if path == "/api/osint/search":
+            queries = query.get("q", [])
+            if len(queries) != 1 or not OSINT_QUERY_PATTERN.fullmatch(queries[0]):
+                return None
+            return "osint", f"/search?{urlencode({'q': queries[0]})}"
+
+        if path == "/api/appsec/modules":
+            return "appsec", "/modules"
+
+        if path == "/api/appsec/analyze":
+            module_id = _single_query_value(query, "id")
+            if module_id is None:
+                return None
+            return "appsec", f"/analyze?{urlencode({'id': module_id})}"
+
+        if path == "/api/hrm/summary":
+            campaign_id = _single_query_value(query, "campaign")
+            if campaign_id is None:
+                return None
+            return "hrm", f"/summary?{urlencode({'campaign': campaign_id})}"
+
+        if path == "/api/red-team/scenarios":
+            return "simulator", "/scenarios"
+
+        if path == "/api/triage":
+            campaign_id = _single_query_value(query, "campaign")
+            if campaign_id is None:
+                return None
+            return "blueteam", f"/records?{urlencode({'campaign': campaign_id})}"
+
         campaign_match = re.fullmatch(
             r"/api/campaigns/([A-Za-z0-9][A-Za-z0-9_-]{0,63})/(summary|events)",
             path,
@@ -94,6 +142,7 @@ def resolve_api_request(method, path, query_string=""):
         post_routes = {
             "/api/ctf/submit": ("ctf", "/submit"),
             "/api/actions": ("assessment", "/actions"),
+            "/api/triage": ("blueteam", "/records"),
         }
         return post_routes.get(path)
 
@@ -197,6 +246,17 @@ class Handler(BaseHTTPRequestHandler):
 
         if parsed.path == "/health":
             return self.json_response(200, {"status": "ok", "service": "hhl-web"})
+
+        if parsed.path == "/api/curriculum/path":
+            try:
+                curriculum = json.loads(CURRICULUM_PATH.read_text(encoding="utf-8"))
+            except OSError as exc:
+                LOGGER.error("Curriculum manifest could not be read: %s", exc)
+                return self.json_response(500, {"error": "curriculum_unavailable"})
+            except json.JSONDecodeError as exc:
+                LOGGER.error("Curriculum manifest is invalid JSON: %s", exc)
+                return self.json_response(500, {"error": "invalid_curriculum"})
+            return self.json_response(200, curriculum)
 
         if parsed.path.startswith("/api/"):
             return self.proxy("GET", parsed.path, parsed.query)

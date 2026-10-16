@@ -26,6 +26,7 @@ USERS_FILE = Path(os.getenv("USERS_FILE", "/app/users.csv"))
 
 ROOT = Path(__file__).parent
 CAMPAIGNS_FILE = ROOT / "campaigns.json"
+SCENARIOS_FILE = ROOT / "scenarios.json"
 DB_LOCK = threading.Lock()
 LOGGER = logging.getLogger("hhl.simulator")
 
@@ -97,6 +98,10 @@ def load_users():
 
 def load_campaigns():
     return json.loads(CAMPAIGNS_FILE.read_text(encoding="utf-8"))
+
+
+def load_scenarios():
+    return json.loads(SCENARIOS_FILE.read_text(encoding="utf-8"))["scenarios"]
 
 
 def record_event(campaign_id, user_id, event_type, token, correlation_id,
@@ -268,6 +273,9 @@ class Handler(BaseHTTPRequestHandler):
                     "summary": campaign_summary(campaign["id"]),
                 })
             return self._json(200, result)
+
+        if path == "/scenarios":
+            return self._json(200, load_scenarios())
 
         if path.startswith("/campaigns/") and path.endswith("/summary"):
             campaign_id = path.split("/")[2]

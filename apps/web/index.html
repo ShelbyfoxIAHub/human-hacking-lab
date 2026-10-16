@@ -45,6 +45,7 @@
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
+    #scope-confirm { min-width: 0; width: 1.1rem; height: 1.1rem; flex: 0 0 auto; }
     header, main { width: min(1180px, calc(100% - 2rem)); margin: auto; }
     header { padding: 2rem 0 1.25rem; }
     header p, .muted { color: var(--muted); }
@@ -109,10 +110,16 @@
       <section class="panel" aria-labelledby="campaign-title">
         <h2 id="campaign-title">1. Ejecutar una campaña de práctica</h2>
         <p class="muted">El envío usa exclusivamente el sumidero MailHog del laboratorio.</p>
+        <h3>Escenario Red Team preautorizado</h3>
+        <div class="list" id="redteam-scenario-details"></div>
+        <div class="row">
+          <input id="scope-confirm" type="checkbox" disabled>
+          <label for="scope-confirm">Confirmar alcance local: identidades sintéticas y MailHog únicamente.</label>
+        </div>
         <div class="row">
           <label class="muted" for="campaign-select">Campaña</label>
           <select id="campaign-select"></select>
-          <button id="send-campaign">Enviar campaña sintética</button>
+          <button id="send-campaign" disabled>Enviar campaña sintética</button>
         </div>
         <p class="notice" id="campaign-notice" aria-live="polite"></p>
         <p><a href="http://127.0.0.1:8025" target="_blank" rel="noreferrer">Abrir MailHog local</a></p>
@@ -127,8 +134,24 @@
         <p class="notice" id="signals-notice" aria-live="polite"></p>
         <h3>Alertas</h3>
         <div class="list" id="alerts-list"></div>
+        <h3>Blue Team: triage de alertas</h3>
+        <p class="muted">Registra una disposición de entrenamiento predefinida con los IDs de evidencia; no ejecuta acciones sobre sistemas.</p>
+        <p class="notice" id="triage-notice" aria-live="polite"></p>
+        <div class="list" id="triage-list"></div>
         <h3>Eventos recientes</h3>
         <div class="list" id="events-list"></div>
+        <h3>Búsqueda de amenazas</h3>
+        <p class="muted">Hipótesis deterministas sobre actividad sintética; cada coincidencia incluye evidencia consultable.</p>
+        <p class="notice" id="hunt-notice" aria-live="polite"></p>
+        <div class="list" id="hunts-list"></div>
+        <h3>Reconstrucción temporal DFIR</h3>
+        <div class="row">
+          <label class="muted" for="timeline-run">Ejecución</label>
+          <select id="timeline-run" disabled></select>
+          <button class="secondary" id="load-timeline" disabled>Reconstruir línea de tiempo</button>
+        </div>
+        <p class="notice" id="timeline-notice" aria-live="polite"></p>
+        <div class="list" id="timeline-list"></div>
       </section>
     </div>
 
@@ -161,6 +184,50 @@
       <div class="list" id="report-result"></div>
       <div class="list" id="verification-result"></div>
     </section>
+
+    <section class="panel" aria-labelledby="osint-title">
+      <h2 id="osint-title">5. Investigar fuentes OSINT sintéticas</h2>
+      <p class="muted">Busca solamente en artefactos locales de entrenamiento. No se consultan dominios ni plataformas externas.</p>
+      <form class="row" id="osint-search-form">
+        <label for="osint-query">Entidad o indicador</label>
+        <input id="osint-query" required maxlength="80" pattern="[A-Za-z0-9][A-Za-z0-9 ._@-]{0,79}" autocomplete="off" placeholder="p. ej., analyst-amber">
+        <button id="osint-search-button">Buscar en fuentes sintéticas</button>
+      </form>
+      <p class="notice" id="osint-notice" aria-live="polite"></p>
+      <div class="list" id="osint-results"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="appsec-title">
+      <h2 id="appsec-title">6. Revisar código de forma segura (AppSec)</h2>
+      <p class="muted">Análisis estático de ejemplos incluidos. El código no se ejecuta y no se admiten cargas arbitrarias.</p>
+      <div class="row">
+        <label for="appsec-module">Módulo</label>
+        <select id="appsec-module"></select>
+        <button class="secondary" id="appsec-analyze">Analizar ejemplo</button>
+      </div>
+      <p class="notice" id="appsec-notice" aria-live="polite"></p>
+      <div class="list" id="appsec-results"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="hrm-title">
+      <h2 id="hrm-title">7. Métricas agregadas de Human Risk Management</h2>
+      <p class="muted">Solo métricas de cohortes sintéticas de al menos cinco participantes. No hay puntuaciones ni perfiles individuales.</p>
+      <div class="row">
+        <button class="secondary" id="refresh-hrm">Actualizar métricas agregadas</button>
+      </div>
+      <p class="notice" id="hrm-notice" aria-live="polite"></p>
+      <div class="list" id="hrm-results"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="curriculum-title">
+      <h2 id="curriculum-title">8. Ruta curricular integrada</h2>
+      <p class="muted">Recorrido por prerrequisitos y evidencias. El progreso es autodeclarado y se guarda solo en este navegador para el ID sintético seleccionado.</p>
+      <div class="row">
+        <button class="secondary" id="reset-curriculum">Reiniciar progreso local</button>
+      </div>
+      <p class="notice" id="curriculum-notice" aria-live="polite"></p>
+      <div class="list" id="curriculum-modules"></div>
+    </section>
   </main>
 
   <footer>
@@ -169,7 +236,16 @@
 
   <script>
     const $ = (id) => document.getElementById(id);
-    const state = { campaigns: [], challenges: [], completed: new Set(), reportReady: false };
+    const state = {
+      campaigns: [],
+      challenges: [],
+      completed: new Set(),
+      reportReady: false,
+      scenarios: [],
+      redTeamScenario: null,
+      curriculum: null
+    };
+    const learnerIdPattern = /^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$/;
     const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     })[char]);
@@ -201,6 +277,65 @@
       $("verification-result").replaceChildren();
     }
 
+    function updateSendAvailability() {
+      $("send-campaign").disabled = !(
+        state.redTeamScenario && $("scope-confirm").checked
+      );
+    }
+
+    function renderRedTeamScenario() {
+      const root = $("redteam-scenario-details");
+      root.replaceChildren();
+      const campaignId = $("campaign-select").value;
+      state.redTeamScenario = state.scenarios.find(
+        (scenario) => scenario.campaign_id === campaignId
+      ) || null;
+      $("scope-confirm").checked = false;
+      $("scope-confirm").disabled = !state.redTeamScenario;
+      if (!state.redTeamScenario) {
+        root.textContent = "No hay un escenario preautorizado para esta campaña.";
+        notice("campaign-notice", "La campaña no tiene un escenario Red Team permitido.", true);
+        updateSendAvailability();
+        return;
+      }
+
+      const scenario = state.redTeamScenario;
+      const heading = document.createElement("h3");
+      heading.textContent = `${scenario.scenario_id} · ${scenario.title}`;
+      const objective = document.createElement("p");
+      objective.textContent = scenario.objective;
+      root.append(heading, objective);
+      for (const [label, values] of [
+        ["Alcance", scenario.scope],
+        ["Acciones permitidas", scenario.permitted_actions],
+        ["Acciones prohibidas", scenario.prohibited_actions],
+        ["Condiciones de parada", scenario.stop_conditions]
+      ]) {
+        const group = document.createElement("div");
+        group.className = "item";
+        const title = document.createElement("strong");
+        title.textContent = `${label}: `;
+        const text = document.createElement("span");
+        text.textContent = values.join(" · ");
+        group.append(title, text);
+        root.append(group);
+      }
+      notice("campaign-notice", "Revisa el alcance y confirma antes de iniciar.");
+      updateSendAvailability();
+    }
+
+    async function loadRedTeamScenarios() {
+      try {
+        state.scenarios = await api("/api/red-team/scenarios");
+        renderRedTeamScenario();
+      } catch (error) {
+        state.scenarios = [];
+        state.redTeamScenario = null;
+        renderRedTeamScenario();
+        notice("campaign-notice", `No se pudo cargar el escenario Red Team: ${error.message}`, true);
+      }
+    }
+
     async function loadCampaigns() {
       try {
         state.campaigns = await api("/api/campaigns");
@@ -213,6 +348,7 @@
           select.append(option);
         }
         notice("campaign-notice", state.campaigns.length ? "Campañas sintéticas disponibles." : "No hay campañas configuradas.");
+        await loadRedTeamScenarios();
         if (state.campaigns.length) await refreshSignals();
       } catch (error) {
         notice("campaign-notice", `No se pudo cargar la campaña: ${error.message}`, true);
@@ -229,10 +365,26 @@
         ]);
         renderEvents(summary.events || []);
         renderAlerts(alerts.alerts || []);
+        renderTimelineRuns(summary.events || []);
         notice("signals-notice", "Telemetría y detecciones actualizadas.");
+        try {
+          await loadTriage(campaign, alerts.alerts || []);
+        } catch (error) {
+          notice("triage-notice", `No se pudo cargar el triage: ${error.message}`, true);
+        }
       } catch (error) {
         notice("signals-notice", `No se pudo actualizar la telemetría: ${error.message}`, true);
+        return;
       }
+      try {
+        const hunts = await api(`/api/hunts?campaign=${encodeURIComponent(campaign)}`);
+        renderHunts(hunts.hypotheses || []);
+        notice("hunt-notice", "Hipótesis de búsqueda actualizadas.");
+      } catch (error) {
+        renderHunts([]);
+        notice("hunt-notice", `No se pudieron cargar las búsquedas: ${error.message}`, true);
+      }
+      await loadHumanRisk();
     }
 
     function renderEvents(events) {
@@ -265,9 +417,144 @@
       }
     }
 
+    function renderTriage(alerts, records) {
+      const root = $("triage-list");
+      root.replaceChildren();
+      if (!alerts.length) {
+        root.textContent = "No hay alertas para revisar en esta campaña.";
+        return;
+      }
+      for (const alert of alerts) {
+        const card = document.createElement("article");
+        card.className = "challenge";
+        const heading = document.createElement("h3");
+        heading.textContent = `${alert.rule_id} · ${alert.title} · ${alert.evidence_count} evidencias`;
+        const evidence = document.createElement("p");
+        evidence.textContent = `Ejecución ${alert.correlation_id} · eventos: ${(alert.evidence_event_ids || []).join(", ")}`;
+        const history = records.filter((record) => record.alert_id === alert.alert_id);
+        const status = document.createElement("p");
+        status.className = "muted";
+        status.textContent = history.length
+          ? `${history.length} disposición(es) append-only; última: ${history[history.length - 1].decision}.`
+          : "Sin disposición registrada.";
+        const controls = document.createElement("div");
+        controls.className = "row";
+        const decision = document.createElement("select");
+        decision.setAttribute("aria-label", `Disposición para ${alert.alert_id}`);
+        for (const [value, label] of [
+          ["VALIDATED_SYNTHETIC_ACTIVITY", "Actividad sintética validada"],
+          ["RULE_REVIEW_RECOMMENDED", "Revisión de regla recomendada"],
+          ["ESCALATED_TO_INSTRUCTOR", "Escalar al instructor"]
+        ]) {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = label;
+          decision.append(option);
+        }
+        const submit = document.createElement("button");
+        submit.className = "secondary";
+        submit.textContent = "Registrar triage";
+        submit.addEventListener("click", () => recordTriage(alert, decision, submit));
+        controls.append(decision, submit);
+        card.append(heading, evidence, status, controls);
+        root.append(card);
+      }
+    }
+
+    async function loadTriage(campaign, alerts) {
+      const result = await api(`/api/triage?campaign=${encodeURIComponent(campaign)}`);
+      renderTriage(alerts, result.records || []);
+      notice("triage-notice", "Evidencia y disposiciones de entrenamiento cargadas.");
+    }
+
+    async function recordTriage(alert, decision, button) {
+      button.disabled = true;
+      try {
+        await api("/api/triage", {
+          method: "POST",
+          body: JSON.stringify({
+            campaign_id: alert.campaign_id,
+            alert_id: alert.alert_id,
+            decision: decision.value
+          })
+        });
+        notice("triage-notice", "Disposición sintética registrada en el historial append-only.");
+        await refreshSignals();
+      } catch (error) {
+        notice("triage-notice", `No se pudo registrar el triage: ${error.message}`, true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function renderHunts(hypotheses) {
+      const root = $("hunts-list");
+      root.replaceChildren();
+      if (!hypotheses.some((hunt) => hunt.matches.length)) {
+        root.textContent = "Sin coincidencias. Genera actividad sintética y vuelve a buscar.";
+        return;
+      }
+      for (const hunt of hypotheses) {
+        const item = document.createElement("div");
+        item.className = "item";
+        item.textContent = `${hunt.hunt_id} · ${hunt.title} · ${hunt.matches.length} coincidencias`;
+        for (const match of hunt.matches) {
+          const evidence = document.createElement("p");
+          const subjects = match.user_id || (match.user_ids || []).join(", ");
+          evidence.textContent = `Ejecución ${match.correlation_id} · ${subjects} · ${match.event_ids.length} eventos: ${match.event_ids.join(", ")}`;
+          item.append(evidence);
+        }
+        root.append(item);
+      }
+    }
+
+    function renderTimelineRuns(events) {
+      const select = $("timeline-run");
+      const selected = select.value;
+      const runs = [...new Set(events.slice().reverse()
+        .map((event) => event.correlation_id).filter(Boolean))];
+      select.replaceChildren();
+      for (const run of runs) {
+        const option = document.createElement("option");
+        option.value = run;
+        option.textContent = run;
+        select.append(option);
+      }
+      if (runs.includes(selected)) select.value = selected;
+      select.disabled = runs.length === 0;
+      $("load-timeline").disabled = runs.length === 0;
+      if (!runs.length) $("timeline-list").textContent = "Aún no hay ejecuciones para reconstruir.";
+    }
+
+    async function loadTimeline() {
+      const run = $("timeline-run").value;
+      if (!run) return notice("timeline-notice", "Selecciona una ejecución.", true);
+      try {
+        const result = await api(`/api/timeline?run=${encodeURIComponent(run)}`);
+        const root = $("timeline-list");
+        root.replaceChildren();
+        if (!result.events.length) {
+          root.textContent = "No hay eventos para esta ejecución.";
+        } else {
+          for (const event of result.events) {
+            const item = document.createElement("div");
+            item.className = "item";
+            item.textContent = `${event.timestamp} · ${event.event_type} · ${event.user_id} · ${event.source} · ${event.event_id}`;
+            root.append(item);
+          }
+        }
+        notice("timeline-notice", `${result.event_count} eventos ordenados cronológicamente.`);
+      } catch (error) {
+        notice("timeline-notice", `No se pudo reconstruir la línea de tiempo: ${error.message}`, true);
+      }
+    }
+
     async function sendCampaign() {
       const campaign = $("campaign-select").value;
       if (!campaign) return notice("campaign-notice", "Selecciona una campaña.", true);
+      if (!state.redTeamScenario || !$("scope-confirm").checked) {
+        return notice("campaign-notice", "Confirma el alcance preautorizado antes de iniciar.", true);
+      }
       if (!window.confirm("Se enviarán mensajes sintéticos solo al MailHog local. ¿Continuar?")) return;
       $("send-campaign").disabled = true;
       try {
@@ -278,7 +565,8 @@
       } catch (error) {
         notice("campaign-notice", `No se pudo enviar: ${error.message}`, true);
       } finally {
-        $("send-campaign").disabled = false;
+        $("scope-confirm").checked = false;
+        updateSendAvailability();
       }
     }
 
@@ -510,14 +798,310 @@
       }
     }
 
+    async function searchOsint(event) {
+      event.preventDefault();
+      const query = $("osint-query").value.trim();
+      if (!query) return notice("osint-notice", "Escribe una entidad o indicador sintético.", true);
+      const button = $("osint-search-button");
+      button.disabled = true;
+      try {
+        const result = await api(`/api/osint/search?q=${encodeURIComponent(query)}`);
+        const root = $("osint-results");
+        root.replaceChildren();
+        if (!result.results.length) {
+          root.textContent = "No se encontraron coincidencias en el catálogo local.";
+        } else {
+          for (const source of result.results) {
+            const card = document.createElement("article");
+            card.className = "challenge";
+            const heading = document.createElement("h3");
+            heading.textContent = `${source.source_id} · ${source.title}`;
+            const provenance = document.createElement("p");
+            provenance.textContent = `${source.source_type} · observado ${source.observed_at} · confianza ${source.confidence}`;
+            const summary = document.createElement("p");
+            summary.textContent = source.summary;
+            const uri = document.createElement("p");
+            uri.textContent = `Referencia sintética: ${source.uri}`;
+            const indicators = document.createElement("p");
+            indicators.textContent = `Indicadores: ${source.indicators.join(", ")}`;
+            const entities = document.createElement("p");
+            entities.textContent = `Entidades relacionadas: ${source.related_entity_ids.join(", ")}`;
+            const collection = document.createElement("p");
+            collection.textContent = `Procedencia: ${source.collection_method}`;
+            card.append(heading, provenance, summary, uri, indicators, entities, collection);
+            root.append(card);
+          }
+        }
+        notice("osint-notice", `${result.result_count} fuentes del catálogo sintético. ${result.classification}`);
+      } catch (error) {
+        notice("osint-notice", `No se pudo consultar el catálogo local: ${error.message}`, true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function loadAppsecModules() {
+      try {
+        const modules = await api("/api/appsec/modules");
+        const select = $("appsec-module");
+        select.replaceChildren();
+        for (const module of modules) {
+          const option = document.createElement("option");
+          option.value = module.id;
+          option.textContent = `${module.id} · ${module.title}`;
+          select.append(option);
+        }
+        notice("appsec-notice", `${modules.length} ejemplos estáticos disponibles.`);
+      } catch (error) {
+        notice("appsec-notice", `No se pudieron cargar los módulos AppSec: ${error.message}`, true);
+      }
+    }
+
+    async function analyzeAppsec() {
+      const moduleId = $("appsec-module").value;
+      if (!moduleId) return notice("appsec-notice", "Selecciona un módulo.", true);
+      const button = $("appsec-analyze");
+      button.disabled = true;
+      try {
+        const result = await api(`/api/appsec/analyze?id=${encodeURIComponent(moduleId)}`);
+        const root = $("appsec-results");
+        root.replaceChildren();
+        const objective = document.createElement("p");
+        objective.className = "muted";
+        objective.textContent = result.objective;
+        root.append(objective);
+
+        const sourceHeading = document.createElement("h3");
+        sourceHeading.textContent = "Ejemplo revisado";
+        const source = document.createElement("pre");
+        source.textContent = result.source_code;
+        root.append(sourceHeading, source);
+
+        if (!result.findings.length) {
+          const clean = document.createElement("p");
+          clean.textContent = "Sin coincidencias para las reglas estáticas incluidas.";
+          root.append(clean);
+        }
+        for (const finding of result.findings) {
+          const card = document.createElement("article");
+          card.className = "challenge";
+          const heading = document.createElement("h3");
+          heading.textContent = `${finding.rule_id} · ${finding.severity} · ${finding.title}`;
+          const detail = document.createElement("p");
+          detail.textContent = `Línea ${finding.line}: ${finding.description}`;
+          const remediation = document.createElement("p");
+          remediation.textContent = `Remediación: ${finding.remediation}`;
+          card.append(heading, detail, remediation);
+          root.append(card);
+        }
+
+        const fixedHeading = document.createElement("h3");
+        fixedHeading.textContent = "Versión remediada";
+        const fixed = document.createElement("pre");
+        fixed.textContent = result.remediated_code;
+        root.append(fixedHeading, fixed);
+        notice(
+          "appsec-notice",
+          result.secure ? "El ejemplo no activó las reglas incluidas." : `${result.findings.length} hallazgo(s) estático(s). El análisis no ejecutó el código.`
+        );
+      } catch (error) {
+        notice("appsec-notice", `No se pudo analizar el ejemplo: ${error.message}`, true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function renderHumanRisk(summary) {
+      const root = $("hrm-results");
+      root.replaceChildren();
+      if (!summary.runs.length) {
+        root.textContent = summary.suppressed_run_count
+          ? `${summary.suppressed_run_count} ejecución(es) omitida(s) por no alcanzar el mínimo de cohorte.`
+          : "Aún no hay campañas sintéticas con métricas agregables.";
+      }
+      for (const run of summary.runs) {
+        const item = document.createElement("article");
+        item.className = "challenge";
+        const heading = document.createElement("h3");
+        heading.textContent = `Ejecución ${run.correlation_id} · cohorte agregada`;
+        const metrics = document.createElement("p");
+        metrics.textContent = `${run.participant_count} participantes · ${run.delivery_count} entregas · ${run.click_event_count} clics · tasa de clics ${run.click_rate_pct}% · tasa de reporte ${run.report_rate_pct}% · tasa de apertura ${run.open_rate_pct}%`;
+        const caveat = document.createElement("p");
+        caveat.className = "muted";
+        caveat.textContent = "Estas tasas describen interacciones sintéticas; no califican a alumnos ni miden por sí solas aprendizaje o riesgo humano.";
+        item.append(heading, metrics, caveat);
+        root.append(item);
+      }
+      if (summary.runs.length && summary.suppressed_run_count) {
+        const suppressed = document.createElement("p");
+        suppressed.className = "muted";
+        suppressed.textContent = `${summary.suppressed_run_count} ejecución(es) adicional(es) omitida(s) por tamaño de cohorte.`;
+        root.append(suppressed);
+      }
+    }
+
+    async function loadHumanRisk() {
+      const campaign = $("campaign-select").value;
+      if (!campaign) return;
+      const button = $("refresh-hrm");
+      button.disabled = true;
+      try {
+        const summary = await api(
+          `/api/hrm/summary?campaign=${encodeURIComponent(campaign)}`
+        );
+        renderHumanRisk(summary);
+        notice("hrm-notice", "Métricas agregadas actualizadas. No se exponen resultados por persona.");
+      } catch (error) {
+        notice("hrm-notice", `No se pudieron cargar las métricas: ${error.message}`, true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function curriculumStorageKey() {
+      const learnerId = $("player-id").value.trim();
+      if (!learnerIdPattern.test(learnerId)) {
+        throw new Error("Usa un ID sintético válido de 1 a 32 caracteres.");
+      }
+      return `hhl-curriculum-v1:${learnerId}`;
+    }
+
+    function readCurriculumProgress() {
+      let raw;
+      try {
+        raw = localStorage.getItem(curriculumStorageKey());
+      } catch (error) {
+        throw new Error(`No se pudo leer el progreso local: ${error.message}`);
+      }
+      if (raw === null) return new Set();
+
+      let saved;
+      try {
+        saved = JSON.parse(raw);
+      } catch {
+        throw new Error("El progreso local no tiene un formato válido; reinícialo para continuar.");
+      }
+      const knownIds = new Set(state.curriculum.modules.map((module) => module.id));
+      if (!Array.isArray(saved) || saved.some((id) => !knownIds.has(id))) {
+        throw new Error("El progreso local contiene módulos desconocidos; reinícialo para continuar.");
+      }
+      return new Set(saved);
+    }
+
+    function renderCurriculum() {
+      if (!state.curriculum) return;
+      const root = $("curriculum-modules");
+      root.replaceChildren();
+      let progress;
+      try {
+        progress = readCurriculumProgress();
+      } catch (error) {
+        root.textContent = "No se puede cargar el progreso local.";
+        notice("curriculum-notice", error.message, true);
+        return;
+      }
+
+      for (const module of state.curriculum.modules) {
+        const completed = progress.has(module.id);
+        const unmet = module.prerequisites.filter((id) => !progress.has(id));
+        const card = document.createElement("article");
+        card.className = "challenge";
+        const heading = document.createElement("h3");
+        heading.textContent = `${module.id} · ${module.title}`;
+        const exercise = document.createElement("p");
+        exercise.textContent = `Ejercicio ${module.exercise_id} · ${module.exercise_path}`;
+        const status = document.createElement("span");
+        status.className = `tag ${completed ? "pass" : ""}`;
+        status.textContent = completed
+          ? "Autodeclarado · solo local"
+          : unmet.length ? `Bloqueado · requiere ${unmet.join(", ")}` : "Disponible";
+        const evidenceTitle = document.createElement("p");
+        evidenceTitle.textContent = "Evidencia de aprendizaje esperada:";
+        const evidence = document.createElement("ul");
+        for (const item of module.evidence) {
+          const entry = document.createElement("li");
+          entry.textContent = item;
+          evidence.append(entry);
+        }
+        const button = document.createElement("button");
+        button.className = "secondary";
+        button.textContent = completed ? "Módulo completado" : "Autodeclarar completado";
+        button.disabled = completed || unmet.length > 0;
+        button.addEventListener("click", () => completeCurriculumModule(module.id));
+        card.append(heading, exercise, status, evidenceTitle, evidence, button);
+        root.append(card);
+      }
+      notice(
+        "curriculum-notice",
+        `${progress.size}/${state.curriculum.modules.length} módulos autodeclarados. ${state.curriculum.progress_notice}`
+      );
+    }
+
+    async function loadCurriculum() {
+      try {
+        state.curriculum = await api("/api/curriculum/path");
+        renderCurriculum();
+      } catch (error) {
+        notice("curriculum-notice", `No se pudo cargar la ruta curricular: ${error.message}`, true);
+      }
+    }
+
+    function completeCurriculumModule(moduleId) {
+      const module = state.curriculum.modules.find((item) => item.id === moduleId);
+      if (!module) return notice("curriculum-notice", "Módulo curricular desconocido.", true);
+      let progress;
+      try {
+        progress = readCurriculumProgress();
+      } catch (error) {
+        return notice("curriculum-notice", error.message, true);
+      }
+      if (module.prerequisites.some((id) => !progress.has(id))) {
+        return notice("curriculum-notice", "Completa primero los prerrequisitos.", true);
+      }
+      if (!window.confirm("Esto guardará una autodeclaración local; no verifica automáticamente la evidencia. ¿Continuar?")) return;
+      progress.add(module.id);
+      try {
+        localStorage.setItem(curriculumStorageKey(), JSON.stringify([...progress].sort()));
+      } catch (error) {
+        return notice("curriculum-notice", `No se pudo guardar el progreso local: ${error.message}`, true);
+      }
+      renderCurriculum();
+    }
+
+    function resetCurriculumProgress() {
+      let key;
+      try {
+        key = curriculumStorageKey();
+      } catch (error) {
+        return notice("curriculum-notice", error.message, true);
+      }
+      if (!window.confirm("Se borrará el progreso curricular local de este ID sintético en este navegador. ¿Continuar?")) return;
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        return notice("curriculum-notice", `No se pudo reiniciar el progreso local: ${error.message}`, true);
+      }
+      renderCurriculum();
+    }
+
     $("portal-status").textContent = "Portal local disponible.";
     $("send-campaign").addEventListener("click", sendCampaign);
     $("refresh-signals").addEventListener("click", refreshSignals);
-    $("campaign-select").addEventListener("change", refreshSignals);
+    $("load-timeline").addEventListener("click", loadTimeline);
+    $("scope-confirm").addEventListener("change", updateSendAvailability);
+    $("campaign-select").addEventListener("change", () => {
+      renderRedTeamScenario();
+      refreshSignals();
+    });
     $("load-score").addEventListener("click", loadScore);
     $("load-assessment").addEventListener("click", loadAssessment);
     $("generate-report").addEventListener("click", generateReport);
     $("run-verification").addEventListener("click", runVerification);
+    $("osint-search-form").addEventListener("submit", searchOsint);
+    $("appsec-analyze").addEventListener("click", analyzeAppsec);
+    $("reset-curriculum").addEventListener("click", resetCurriculumProgress);
+    $("player-id").addEventListener("change", renderCurriculum);
+    $("refresh-hrm").addEventListener("click", loadHumanRisk);
     $("assessment-id").addEventListener("input", () => {
       resetReport();
       $("assessment-summary").replaceChildren();
@@ -525,6 +1109,8 @@
     });
     loadCampaigns();
     loadChallenges();
+    loadAppsecModules();
+    loadCurriculum();
   </script>
 </body>
 </html>
